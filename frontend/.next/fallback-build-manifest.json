@@ -1,0 +1,13 @@
+{
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [],
+  "lowPriorityFiles": [
+    "static/BBDVb_5AvIVyIOpTZbX38/_buildManifest.js",
+    "static/BBDVb_5AvIVyIOpTZbX38/_ssgManifest.js",
+    "static/BBDVb_5AvIVyIOpTZbX38/_clientMiddlewareManifest.js"
+  ],
+  "rootMainFiles": []
+}

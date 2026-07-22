@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/oauth2/layout,_N_T_/oauth2/callback/layout,_N_T_/oauth2/callback/page,_N_T_/oauth2/callback"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/oauth2/callback/__PAGE__",
+    "/oauth2/callback",
+    "/oauth2",
+    "/_index",
+    "/_head"
+  ]
+}

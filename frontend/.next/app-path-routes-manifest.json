@@ -1,0 +1,6 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/oauth2/callback/page": "/oauth2/callback",
+  "/page": "/"
+}
