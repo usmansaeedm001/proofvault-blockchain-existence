@@ -1,0 +1,82 @@
+server:
+  port: ${SERVER_PORT:9000}
+  shutdown: graceful
+  forward-headers-strategy: framework
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: proofvault-authserver
+  profiles:
+    default: local
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    hikari:
+      pool-name: ProofVaultAuthHikari
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: 30000
+      validation-timeout: 5000
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when_authorized
+  info:
+    env:
+      enabled: true
+  tracing:
+    enabled: ${OTEL_TRACING_ENABLED:true}
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLER_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  pattern:
+    correlation: "[%X{traceId:-},%X{spanId:-},%X{requestId:-}] "
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.proofvault: ${LOG_LEVEL_PROOFVAULT:INFO}
+
+proofvault:
+  auth:
+    issuer: ${AUTH_ISSUER:http://localhost:9000}
+    audience: ${AUTH_AUDIENCE:proofvault-api}
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    bootstrap:
+      enabled: ${AUTH_BOOTSTRAP_ENABLED:true}
+      user-email: ${AUTH_BOOTSTRAP_USER_EMAIL:admin@proofvault.local}
+      user-password: ${AUTH_BOOTSTRAP_USER_PASSWORD:ChangeMeLocal123!}
+      client-id: ${AUTH_BOOTSTRAP_CLIENT_ID:proofvault-web}
+      client-secret: ${AUTH_BOOTSTRAP_CLIENT_SECRET:proofvault-local-secret}
+      public-client-id: ${AUTH_FRONTEND_PUBLIC_CLIENT_ID:proofvault-spa}
+      redirect-uris: ${AUTH_FRONTEND_REDIRECT_URI:http://localhost:5173/oauth2/callback}
+      post-logout-redirect-uris: ${AUTH_FRONTEND_LOGOUT_REDIRECT_URI:http://localhost:5173}
+    signing:
+      require-configured-key: ${AUTH_SIGNING_REQUIRE_CONFIGURED_KEY:false}
+      private-key-pem: ${AUTH_SIGNING_PRIVATE_KEY_PEM:}
+      public-key-pem: ${AUTH_SIGNING_PUBLIC_KEY_PEM:}
+    tokens:
+      access-token-ttl: ${AUTH_ACCESS_TOKEN_TTL:15m}
+      refresh-token-ttl: ${AUTH_REFRESH_TOKEN_TTL:8h}
+      authorization-code-ttl: ${AUTH_AUTHORIZATION_CODE_TTL:5m}
+
+info:
+  app:
+    name: ProofVault Auth Server
+    description: OAuth2 and OpenID Connect authorization server for ProofVault

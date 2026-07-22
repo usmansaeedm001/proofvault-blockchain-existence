@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: staging
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
+
+proofvault:
+  security:
+    authentication-enabled: true
+
+management:
+  tracing:
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLER_PROBABILITY:0.25}

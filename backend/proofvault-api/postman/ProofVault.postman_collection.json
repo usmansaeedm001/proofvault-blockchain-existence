@@ -1,0 +1,315 @@
+{
+  "info": {
+    "_postman_id": "a70e1b5d-01bc-45af-b051-f8582c1b962cc",
+    "name": "ProofVault API",
+    "description": "Production-oriented ProofVault API collection. Protected requests use the `accessToken` environment variable issued by the ProofVault Auth Server.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Observability",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "{{baseUrl}}/actuator/health"
+          }
+        },
+        {
+          "name": "Info",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "{{baseUrl}}/actuator/info"
+          }
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/actuator/prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "name": "OAuth2",
+      "item": [
+        {
+          "name": "Auth Server Metadata",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "{{oauthIssuer}}/api/authserver/metadata"
+          }
+        },
+        {
+          "name": "OIDC Discovery",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "{{oauthIssuer}}/.well-known/openid-configuration"
+          }
+        },
+        {
+          "name": "JWKS",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": "{{oauthIssuer}}/oauth2/jwks"
+          }
+        },
+        {
+          "name": "Client Credentials Token",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{oauthClientId}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{oauthClientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                },
+                {
+                  "key": "scope",
+                  "value": "{{oauthScopes}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{oauthTokenUrl}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) {",
+                  "  pm.environment.set('accessToken', body.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Introspect Current Token",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{oauthClientId}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{oauthClientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "{{oauthIssuer}}/oauth2/introspect"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/me"
+          }
+        },
+        {
+          "name": "Get Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/subscription"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blockchain",
+      "item": [
+        {
+          "name": "Blockchain Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/blockchain/status"
+          }
+        },
+        {
+          "name": "Blockchain Insights",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/blockchain/insights"
+          }
+        },
+        {
+          "name": "Verify On Chain",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/blockchain/proofs/{{fileHash}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Observability API",
+      "item": [
+        {
+          "name": "Blockchain OTEL Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/observability/blockchain"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proofs",
+      "item": [
+        {
+          "name": "List Recent Proofs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/proofs"
+          }
+        },
+        {
+          "name": "Upload Proof",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/proofs/upload"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.id) pm.environment.set('proofId', body.id);",
+                  "if (body.fileHash) pm.environment.set('fileHash', body.fileHash);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Hash Public",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileHash\": \"{{fileHash}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/proofs/verify"
+          }
+        },
+        {
+          "name": "Download Certificate",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/proofs/{{proofId}}/certificate"
+          }
+        }
+      ]
+    }
+  ]
+}

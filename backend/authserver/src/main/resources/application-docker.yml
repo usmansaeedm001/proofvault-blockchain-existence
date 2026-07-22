@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+
+proofvault:
+  auth:
+    bootstrap:
+      enabled: ${AUTH_BOOTSTRAP_ENABLED:true}
+    signing:
+      require-configured-key: ${AUTH_SIGNING_REQUIRE_CONFIGURED_KEY:false}
+
+management:
+  tracing:
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLER_PROBABILITY:1.0}

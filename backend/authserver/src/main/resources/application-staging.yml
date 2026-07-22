@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: staging
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+
+proofvault:
+  auth:
+    bootstrap:
+      enabled: false
+    signing:
+      require-configured-key: true

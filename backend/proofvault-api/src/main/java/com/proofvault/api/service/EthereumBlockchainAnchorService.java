@@ -1,0 +1,230 @@
+package com.proofvault.api.service;
+
+import com.proofvault.api.config.ProofVaultProperties;
+import com.proofvault.api.dto.BlockchainReceipt;
+import com.proofvault.api.dto.BlockchainStatusResponse;
+import com.proofvault.api.dto.OnChainProofResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Bool;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint64;
+import org.web3j.abi.datatypes.generated.Uint256;
+import org.web3j.crypto.Credentials;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.EthBlockNumber;
+import org.web3j.protocol.core.methods.response.EthCall;
+import org.web3j.protocol.core.methods.response.EthChainId;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.RawTransactionManager;
+import org.web3j.tx.TransactionManager;
+import org.web3j.tx.response.PollingTransactionReceiptProcessor;
+
+@Service
+@ConditionalOnProperty(prefix = "proofvault.blockchain", name = "mode", havingValue = "ethereum")
+public class EthereumBlockchainAnchorService implements IBlockchainAnchorService {
+	private static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+	private final ProofVaultProperties.Blockchain properties;
+	private final Web3j web3j;
+	private final TransactionManager transactionManager;
+	private final PollingTransactionReceiptProcessor receiptProcessor;
+	private final ObservationRegistry observationRegistry;
+	private final Counter anchorCounter;
+	private final Counter verificationCounter;
+	private final Counter errorCounter;
+	private final Timer anchorTimer;
+	private final Timer verificationTimer;
+
+	public EthereumBlockchainAnchorService(ProofVaultProperties proofVaultProperties, MeterRegistry meterRegistry, ObservationRegistry observationRegistry) {
+		this.properties = proofVaultProperties.blockchain();
+		validateConfiguration();
+		this.web3j = Web3j.build(new HttpService(properties.rpcUrl()));
+		this.transactionManager = new RawTransactionManager(web3j, Credentials.create(properties.anchorPrivateKey()), properties.chainId());
+		this.receiptProcessor = new PollingTransactionReceiptProcessor(web3j, 1_000, 60);
+		this.observationRegistry = observationRegistry;
+		this.anchorCounter = Counter.builder("proofvault.blockchain.anchors")
+			.description("Number of proof anchoring attempts")
+			.tag("mode", "ethereum")
+			.tag("network", properties.networkName())
+			.register(meterRegistry);
+		this.verificationCounter = Counter.builder("proofvault.blockchain.verifications")
+			.description("Number of on-chain verification calls")
+			.tag("mode", "ethereum")
+			.tag("network", properties.networkName())
+			.register(meterRegistry);
+		this.errorCounter = Counter.builder("proofvault.blockchain.errors")
+			.description("Number of blockchain operation failures")
+			.tag("mode", "ethereum")
+			.tag("network", properties.networkName())
+			.register(meterRegistry);
+		this.anchorTimer = Timer.builder("proofvault.blockchain.anchor.duration")
+			.description("Proof anchoring duration")
+			.tag("mode", "ethereum")
+			.tag("network", properties.networkName())
+			.register(meterRegistry);
+		this.verificationTimer = Timer.builder("proofvault.blockchain.verify.duration")
+			.description("On-chain verification duration")
+			.tag("mode", "ethereum")
+			.tag("network", properties.networkName())
+			.register(meterRegistry);
+	}
+
+	@Override
+	public BlockchainReceipt storeProof(String fileHash, String metadataHash) {
+		return Observation.createNotStarted("proofvault.blockchain.store", observationRegistry)
+			.lowCardinalityKeyValue("blockchain.mode", "ethereum")
+			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
+			.observe(() -> anchorTimer.record(() -> {
+				try {
+					anchorCounter.increment();
+					Function function = new Function("storeProof", Arrays.asList(new Bytes32(hexBytes32(fileHash)), new Bytes32(hexBytes32(metadataHash))),
+						Collections.emptyList());
+
+					String encodedFunction = FunctionEncoder.encode(function);
+					String transactionHash =
+						transactionManager.sendTransaction(BigInteger.valueOf(properties.gasPriceWei()), BigInteger.valueOf(properties.gasLimit()),
+							properties.contractAddress(), encodedFunction, BigInteger.ZERO).getTransactionHash();
+
+					TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(transactionHash);
+					if (!receipt.isStatusOK()) {
+						throw new IllegalStateException("Blockchain transaction reverted: " + transactionHash);
+					}
+
+					return new BlockchainReceipt(transactionHash, properties.networkName(), Instant.now());
+				} catch (Exception exception) {
+					errorCounter.increment();
+					throw new IllegalStateException("Unable to anchor proof on blockchain.", exception);
+				}
+			}));
+	}
+
+	@Override
+	public OnChainProofResponse verifyProof(String fileHash) {
+		return Observation.createNotStarted("proofvault.blockchain.verify", observationRegistry)
+			.lowCardinalityKeyValue("blockchain.mode", "ethereum")
+			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
+			.observe(() -> verificationTimer.record(() -> {
+				try {
+					verificationCounter.increment();
+					Function function = new Function("verifyProof", List.of(new Bytes32(hexBytes32(fileHash))),
+						List.of(new TypeReference<Bool>() {}, new TypeReference<Address>() {}, new TypeReference<Uint64>() {},
+							new TypeReference<Bytes32>() {}));
+					List<Type> values = call(function);
+
+					boolean exists = (Boolean) values.get(0).getValue();
+					String submitter = values.get(1).getValue().toString();
+					BigInteger timestamp = (BigInteger) values.get(2).getValue();
+					String metadataHash = bytes32ToHex((byte[]) values.get(3).getValue());
+
+					return new OnChainProofResponse(exists, normalizeHex(fileHash), submitter, exists ? Instant.ofEpochSecond(timestamp.longValue()) : null,
+						exists ? metadataHash : null, properties.networkName(), exists ? "Proof exists on-chain." : "Proof does not exist on-chain.");
+				} catch (Exception exception) {
+					errorCounter.increment();
+					throw new IllegalStateException("Unable to verify proof on blockchain.", exception);
+				}
+			}));
+	}
+
+	@Override
+	public BlockchainStatusResponse status() {
+		try {
+			EthChainId chainId = web3j.ethChainId().send();
+			EthBlockNumber blockNumber = web3j.ethBlockNumber().send();
+			return new BlockchainStatusResponse("ethereum", properties.networkName(), !chainId.hasError() && !blockNumber.hasError(), chainId.getChainId(),
+				blockNumber.getBlockNumber(), properties.contractAddress(), properties.anchorAddress(), "Ethereum JSON-RPC connection is active.");
+		} catch (IOException exception) {
+			errorCounter.increment();
+			return new BlockchainStatusResponse("ethereum", properties.networkName(), false, BigInteger.valueOf(properties.chainId()), null,
+				properties.contractAddress(), properties.anchorAddress(), exception.getMessage());
+		}
+	}
+
+	@Override
+	public BigInteger totalProofs() {
+		try {
+			Function function = new Function("totalProofs", Collections.emptyList(), List.of(new TypeReference<Uint256>() {}));
+			List<Type> values = call(function);
+			return (BigInteger) values.get(0).getValue();
+		} catch (Exception exception) {
+			errorCounter.increment();
+			throw new IllegalStateException("Unable to read on-chain proof total.", exception);
+		}
+	}
+
+	private List<Type> call(Function function) throws IOException {
+		String encodedFunction = FunctionEncoder.encode(function);
+		EthCall response = web3j.ethCall(
+			Transaction.createEthCallTransaction(hasText(properties.anchorAddress()) ? properties.anchorAddress() : ZERO_ADDRESS, properties.contractAddress(),
+				encodedFunction), DefaultBlockParameterName.LATEST).send();
+
+		if (response.hasError()) {
+			throw new IllegalStateException(response.getError().getMessage());
+		}
+
+		return FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
+	}
+
+	private void validateConfiguration() {
+		if (!hasText(properties.rpcUrl())) {
+			throw new IllegalStateException("BLOCKCHAIN_RPC_URL is required when BLOCKCHAIN_MODE=ethereum.");
+		}
+		if (!hasText(properties.contractAddress())) {
+			throw new IllegalStateException("PROOFVAULT_CONTRACT_ADDRESS is required when BLOCKCHAIN_MODE=ethereum.");
+		}
+		if (!hasText(properties.anchorPrivateKey())) {
+			throw new IllegalStateException("PROOFVAULT_ANCHOR_PRIVATE_KEY is required when BLOCKCHAIN_MODE=ethereum.");
+		}
+	}
+
+	private byte[] hexBytes32(String value) {
+		String normalized = normalizeHex(value);
+		if (normalized.length() != 66) {
+			throw new IllegalArgumentException("Expected 32-byte hex value.");
+		}
+		byte[] bytes = new byte[32];
+		for (int index = 0; index < 32; index++) {
+			int offset = 2 + index * 2;
+			bytes[index] = (byte) Integer.parseInt(normalized.substring(offset, offset + 2), 16);
+		}
+		return bytes;
+	}
+
+	private String bytes32ToHex(byte[] bytes) {
+		StringBuilder builder = new StringBuilder("0x");
+		for (byte value : bytes) {
+			builder.append(String.format("%02x", value));
+		}
+		return builder.toString();
+	}
+
+	private String normalizeHex(String value) {
+		String normalized = value == null ? "" : value.toLowerCase();
+		return normalized.startsWith("0x") ? normalized : "0x" + normalized;
+	}
+
+	private boolean hasText(String value) {
+		return value != null && !value.isBlank();
+	}
+}

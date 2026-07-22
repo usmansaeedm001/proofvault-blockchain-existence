@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+
+proofvault:
+  auth:
+    bootstrap:
+      enabled: false
+    signing:
+      require-configured-key: true
+
+management:
+  endpoint:
+    health:
+      show-details: never
+  tracing:
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLER_PROBABILITY:0.1}

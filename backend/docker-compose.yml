@@ -1,0 +1,186 @@
+services:
+  proofvault-api:
+    build:
+      context: ./proofvault-api
+      dockerfile: Dockerfile
+    image: proofvault-api:local
+    container_name: proofvault-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      DB_URL: jdbc:mysql://proofvault-mysql:3306/proofvault?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: proofvault
+      DB_PASSWORD: proofvault_local_password
+      AUTHENTICATION_ENABLED: "true"
+      OAUTH2_ISSUER_URI: http://localhost:9000
+      OAUTH2_JWK_SET_URI: http://proofvault-authserver:9000/oauth2/jwks
+      OAUTH2_AUDIENCE: proofvault-api
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000
+      BLOCKCHAIN_MODE: mock
+      BLOCKCHAIN_NETWORK: local-foundry
+      BLOCKCHAIN_RPC_URL: http://anvil:8545
+      BLOCKCHAIN_CHAIN_ID: "31337"
+      BLOCKCHAIN_GAS_PRICE_WEI: "1000000000"
+      BLOCKCHAIN_GAS_LIMIT: "500000"
+      PROOFVAULT_CONTRACT_ADDRESS: ""
+      PROOFVAULT_ANCHOR_ADDRESS: ""
+      PROOFVAULT_ANCHOR_PRIVATE_KEY: ""
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_TRACES_SAMPLER_PROBABILITY: "1.0"
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_PROOFVAULT: DEBUG
+    ports:
+      - "8080:8080"
+    depends_on:
+      proofvault-mysql:
+        condition: service_healthy
+      proofvault-authserver:
+        condition: service_started
+      anvil:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    networks:
+      - proofvault-backend
+
+  proofvault-authserver:
+    build:
+      context: ./authserver
+      dockerfile: Dockerfile
+    image: proofvault-authserver:local
+    container_name: proofvault-authserver
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 9000
+      DB_URL: jdbc:mysql://proofvault-mysql:3306/proofvault_auth?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: proofvault
+      DB_PASSWORD: proofvault_local_password
+      AUTH_ISSUER: http://localhost:9000
+      AUTH_FRONTEND_REDIRECT_URI: http://localhost:5173/oauth2/callback
+      AUTH_FRONTEND_LOGOUT_REDIRECT_URI: http://localhost:5173
+      AUTH_BOOTSTRAP_ENABLED: "true"
+      AUTH_BOOTSTRAP_USER_EMAIL: admin@proofvault.local
+      AUTH_BOOTSTRAP_USER_PASSWORD: ChangeMeLocal123!
+      AUTH_BOOTSTRAP_CLIENT_SECRET: proofvault-local-secret
+      AUTH_FRONTEND_PUBLIC_CLIENT_ID: proofvault-spa
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
+      OTEL_TRACES_SAMPLER_PROBABILITY: "1.0"
+      LOG_LEVEL_ROOT: INFO
+      LOG_LEVEL_PROOFVAULT: DEBUG
+    ports:
+      - "9000:9000"
+    depends_on:
+      proofvault-mysql:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - proofvault-backend
+
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: proofvault-anvil
+    restart: unless-stopped
+    command:
+      - anvil
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8545"
+      - --chain-id
+      - "31337"
+      - --silent
+      - --no-cors
+    ports:
+      - "8545:8545"
+    tty: true
+    networks:
+      - proofvault-backend
+
+  proofvault-mysql:
+    image: mysql:8.4
+    container_name: proofvault-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: proofvault
+      MYSQL_USER: proofvault
+      MYSQL_PASSWORD: proofvault_local_password
+      MYSQL_ROOT_PASSWORD: proofvault_root_local_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      - proofvault-backend-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - proofvault-backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    container_name: proofvault-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./docker/otel-collector-config.yml:/etc/otelcol-contrib/config.yml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
+      - "8889:8889"
+    networks:
+      - proofvault-backend
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: proofvault-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - proofvault-backend-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - proofvault-api
+      - otel-collector
+    networks:
+      - proofvault-backend
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: proofvault-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: proofvault_admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - proofvault-backend-grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - proofvault-backend
+
+networks:
+  proofvault-backend:
+    driver: bridge
+
+volumes:
+  proofvault-backend-mysql-data:
+  proofvault-backend-prometheus-data:
+  proofvault-backend-grafana-data:

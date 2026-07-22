@@ -1,0 +1,21 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:proofvault;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+proofvault:
+  security:
+    authentication-enabled: ${AUTHENTICATION_ENABLED:false}
+
+management:
+  tracing:
+    enabled: ${OTEL_TRACING_ENABLED:false}
