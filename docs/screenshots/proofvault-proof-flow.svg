@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
   <title id="title">ProofVault upload and verification flow</title>
-  <desc id="desc">A product snapshot showing file anchoring, proof history, public verification, and certificate download.</desc>
+  <desc id="desc">A product snapshot showing backend-controlled file anchoring, proof history, public verification, on-chain lookup, and certificate download.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#080b10"/>
@@ -17,7 +17,7 @@
   <rect width="1440" height="900" fill="url(#bg)"/>
   <rect x="36" y="34" width="1368" height="832" rx="10" fill="#0b1018" stroke="#243044"/>
   <text x="78" y="92" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="38" font-weight="800">Proof workflow</text>
-  <text x="80" y="128" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="18">Upload, hash, anchor, verify, and export a certificate from one dashboard.</text>
+  <text x="80" y="128" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="18">Upload, hash, anchor through the API, verify off-chain/on-chain, and export a certificate.</text>
   <rect x="1060" y="70" width="288" height="48" rx="8" fill="url(#button)"/>
   <text x="1134" y="101" fill="#05110c" font-family="Inter,Segoe UI,Arial" font-size="16" font-weight="800">Anchor File</text>
   <g filter="url(#shadow)">
@@ -46,7 +46,7 @@
       <text x="650" y="328" fill="#ffffff" font-size="18" font-weight="800">client-contract-v7.pdf</text>
       <text x="650" y="354" fill="#95a3b8" font-family="Consolas,monospace" font-size="14">f4d2b94d...b4f634aa</text>
       <text x="980" y="338" fill="#c8d2e1" font-size="14">1.4 MB</text>
-      <text x="1082" y="338" fill="#c8d2e1" font-size="14">local-foundry</text>
+      <text x="1082" y="338" fill="#c8d2e1" font-size="14">local-anvil</text>
       <rect x="1238" y="318" width="46" height="38" rx="8" fill="#172231" stroke="#334158"/>
       <path d="M1251 337h20M1261 327v20" stroke="#67d8ff" stroke-width="3"/>
       <rect x="566" y="406" width="756" height="92" rx="8" fill="#0a0f17" stroke="#273346"/>
@@ -54,7 +54,7 @@
       <text x="650" y="442" fill="#ffffff" font-size="18" font-weight="800">brand-system-export.zip</text>
       <text x="650" y="468" fill="#95a3b8" font-family="Consolas,monospace" font-size="14">bc32f037...116d8e85</text>
       <text x="980" y="452" fill="#c8d2e1" font-size="14">8.7 MB</text>
-      <text x="1082" y="452" fill="#c8d2e1" font-size="14">local-foundry</text>
+      <text x="1082" y="452" fill="#c8d2e1" font-size="14">local-anvil</text>
       <rect x="1238" y="432" width="46" height="38" rx="8" fill="#172231" stroke="#334158"/>
       <path d="M1251 451h20M1261 441v20" stroke="#67d8ff" stroke-width="3"/>
       <rect x="566" y="520" width="756" height="92" rx="8" fill="#0a0f17" stroke="#273346"/>
@@ -62,11 +62,11 @@
       <text x="650" y="556" fill="#ffffff" font-size="18" font-weight="800">source-snapshot.tar.gz</text>
       <text x="650" y="582" fill="#95a3b8" font-family="Consolas,monospace" font-size="14">77a93a4a...8b26d58c</text>
       <text x="980" y="566" fill="#c8d2e1" font-size="14">3.0 MB</text>
-      <text x="1082" y="566" fill="#c8d2e1" font-size="14">local-foundry</text>
+      <text x="1082" y="566" fill="#c8d2e1" font-size="14">local-anvil</text>
       <rect x="1238" y="546" width="46" height="38" rx="8" fill="#172231" stroke="#334158"/>
       <path d="M1251 565h20M1261 555v20" stroke="#67d8ff" stroke-width="3"/>
       <rect x="566" y="648" width="756" height="46" rx="8" fill="#12382d" stroke="#2d8b6d"/>
-      <text x="598" y="677" fill="#54f4b4" font-size="16" font-weight="800">Certificate ready for download after anchoring</text>
+      <text x="598" y="677" fill="#54f4b4" font-size="16" font-weight="800">Certificate ready after backend anchoring and blockchain receipt</text>
     </g>
   </g>
 </svg>

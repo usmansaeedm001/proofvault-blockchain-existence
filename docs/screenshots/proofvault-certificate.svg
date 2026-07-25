@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
   <title id="title">ProofVault certificate export</title>
-  <desc id="desc">A product snapshot showing a ProofVault certificate with hash, timestamp, transaction, owner wallet, and Sepolia details.</desc>
+  <desc id="desc">A product snapshot showing a ProofVault certificate with hash, timestamp, transaction, owner wallet, and profile-aware blockchain details.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07090d"/><stop offset="1" stop-color="#101722"/></linearGradient>
     <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#eef4f8"/></linearGradient>
@@ -12,7 +12,7 @@
     <text x="78" y="108" fill="#54f4b4" font-size="14" font-weight="800">CERTIFICATE EXPORT</text>
     <text x="78" y="178" fill="#f7fbff" font-size="52" font-weight="900">Timestamped proof,</text>
     <text x="78" y="240" fill="#f7fbff" font-size="52" font-weight="900">ready for client records.</text>
-    <text x="80" y="286" fill="#c8d2e1" font-size="19">Downloadable evidence includes the file fingerprint, Sepolia transaction, wallet identity, and verification metadata.</text>
+    <text x="80" y="286" fill="#c8d2e1" font-size="19">Downloadable evidence includes the file fingerprint, chain receipt, wallet identity, and verification metadata.</text>
   </g>
   <g filter="url(#shadow)">
     <rect x="190" y="342" width="746" height="474" rx="8" fill="url(#paper)" stroke="#d5dde6"/>
@@ -34,8 +34,8 @@
     <text x="1022" y="394" fill="#95a3b8" font-size="13" font-weight="800">CERTIFICATE METADATA</text>
     <text x="1022" y="432" fill="#fff" font-size="28" font-weight="900">Audit packet</text>
     <text x="1022" y="504" fill="#95a3b8" font-size="13" font-weight="800">NETWORK</text>
-    <text x="1022" y="532" fill="#fff" font-size="20" font-weight="800">Sepolia testnet</text>
-    <text x="1236" y="532" fill="#54f4b4" font-size="17" font-weight="800">11155111</text>
+    <text x="1022" y="532" fill="#fff" font-size="20" font-weight="800">Local Anvil profile</text>
+    <text x="1236" y="532" fill="#54f4b4" font-size="17" font-weight="800">31337</text>
     <text x="1022" y="594" fill="#95a3b8" font-size="13" font-weight="800">TRANSACTION</text>
     <rect x="1022" y="612" width="280" height="42" rx="6" fill="#0a0f17" stroke="#273346"/>
     <text x="1040" y="639" fill="#67d8ff" font-family="Consolas,monospace" font-size="15">0x91ac...54c17a</text>

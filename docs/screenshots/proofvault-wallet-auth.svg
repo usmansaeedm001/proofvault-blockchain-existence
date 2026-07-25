@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
   <title id="title">ProofVault wallet authentication</title>
-  <desc id="desc">A product snapshot showing wallet registration and authentication through a signed Sepolia wallet message.</desc>
+  <desc id="desc">A product snapshot showing wallet registration and authentication through profile-aware signed wallet messages for Anvil, Sepolia, and production chains.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07090d"/><stop offset="1" stop-color="#101722"/></linearGradient>
     <linearGradient id="ok" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#54f4b4"/><stop offset="1" stop-color="#d7ffe9"/></linearGradient>
@@ -12,7 +12,7 @@
     <text x="78" y="112" fill="#54f4b4" font-size="14" font-weight="800">WALLET AUTHENTICATION</text>
     <text x="78" y="184" fill="#f7fbff" font-size="54" font-weight="900">Register and sign in</text>
     <text x="78" y="248" fill="#f7fbff" font-size="54" font-weight="900">with a wallet address.</text>
-    <text x="80" y="294" fill="#c8d2e1" font-size="19">The user signs a one-time Sepolia challenge. ProofVault verifies ownership and issues an API bearer token.</text>
+    <text x="80" y="294" fill="#c8d2e1" font-size="19">The user signs a one-time profile-specific challenge. ProofVault verifies ownership and issues an API bearer token.</text>
   </g>
   <g filter="url(#shadow)" font-family="Inter,Segoe UI,Arial">
     <rect x="86" y="380" width="284" height="270" rx="8" fill="#121923" stroke="#273346"/>
@@ -43,10 +43,10 @@
   <g font-family="Inter,Segoe UI,Arial">
     <rect x="86" y="720" width="390" height="82" rx="8" fill="#0a0f17" stroke="#273346"/>
     <text x="120" y="752" fill="#95a3b8" font-size="13" font-weight="800">NETWORK</text>
-    <text x="120" y="784" fill="#fff" font-size="23" font-weight="800">Sepolia testnet</text>
-    <text x="350" y="784" fill="#54f4b4" font-size="18" font-weight="800">11155111</text>
+    <text x="120" y="784" fill="#fff" font-size="23" font-weight="800">Anvil / Sepolia / Production</text>
+    <text x="386" y="784" fill="#54f4b4" font-size="18" font-weight="800">31337 / 11155111</text>
     <rect x="526" y="720" width="828" height="82" rx="8" fill="#0a0f17" stroke="#273346"/>
     <text x="560" y="752" fill="#95a3b8" font-size="13" font-weight="800">SECURITY MODEL</text>
-    <text x="560" y="784" fill="#fff" font-size="23" font-weight="800">One-time nonce, wallet signature verification, JWT access token</text>
+    <text x="560" y="784" fill="#fff" font-size="23" font-weight="800">MetaMask chain check, one-time nonce, wallet signature, JWT access token</text>
   </g>
 </svg>

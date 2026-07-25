@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
   <title id="title">ProofVault observability dashboards</title>
-  <desc id="desc">A monitoring snapshot showing API health, auth health, blockchain metrics, Prometheus, Grafana, and OpenTelemetry.</desc>
+  <desc id="desc">A monitoring snapshot showing API health, auth health, blockchain metrics, Docker profile awareness, Prometheus, Grafana, and OpenTelemetry.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#07090d"/>
@@ -13,7 +13,7 @@
   <rect width="1440" height="900" fill="url(#bg)"/>
   <rect x="36" y="34" width="1368" height="832" rx="10" fill="#0b1018" stroke="#243044"/>
   <text x="78" y="92" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="38" font-weight="800">Operational cockpit</text>
-  <text x="80" y="128" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="18">OpenTelemetry traces, Prometheus metrics, and Grafana dashboards for the full stack.</text>
+  <text x="80" y="128" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="18">OpenTelemetry traces, Prometheus metrics, and Grafana dashboards for Anvil, Sepolia, and production stacks.</text>
   <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
     <rect x="78" y="178" width="390" height="220" rx="8" fill="#121923" stroke="#273346"/>
     <text x="110" y="220" fill="#95a3b8" font-size="13" font-weight="700">PROOFVAULT API</text>
@@ -28,7 +28,7 @@
     <rect x="974" y="178" width="390" height="220" rx="8" fill="#121923" stroke="#273346"/>
     <text x="1006" y="220" fill="#95a3b8" font-size="13" font-weight="700">BLOCKCHAIN OTEL</text>
     <text x="1006" y="262" fill="#f6c85f" font-size="46" font-weight="800">LIVE</text>
-    <text x="1006" y="304" fill="#c8d2e1" font-size="17">Anchors, verifies, errors, timings</text>
+    <text x="1006" y="304" fill="#c8d2e1" font-size="17">Anchors, verifies, errors, timings, chain IDs</text>
     <rect x="1006" y="336" width="310" height="12" rx="6" fill="#273346"/><rect x="1006" y="336" width="276" height="12" rx="6" fill="#f6c85f"/>
   </g>
   <rect x="78" y="446" width="620" height="318" rx="8" fill="#121923" stroke="#273346" filter="url(#shadow)"/>

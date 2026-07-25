@@ -42,8 +42,8 @@ Core user flow:
 | ![ProofVault dashboard](./docs/screenshots/proofvault-dashboard.svg) | ![ProofVault wallet authentication](./docs/screenshots/proofvault-wallet-auth.svg) |
 | Proof workflow | Certificate export |
 | ![ProofVault proof workflow](./docs/screenshots/proofvault-proof-flow.svg) | ![ProofVault certificate export](./docs/screenshots/proofvault-certificate.svg) |
-| Observability |  |
-| ![ProofVault observability](./docs/screenshots/proofvault-observability.svg) |  |
+| Observability | Environment profiles |
+| ![ProofVault observability](./docs/screenshots/proofvault-observability.svg) | ![ProofVault environment profiles](./docs/screenshots/proofvault-environments.svg) |
 
 ## Architecture
 
