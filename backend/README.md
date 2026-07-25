@@ -99,5 +99,13 @@ Postman collections:
 From the project root:
 
 ```bash
-docker compose -f backend/docker-compose.yml -f docker-compose.yml up --build
+docker compose up --build
+```
+
+Root profile-specific full-stack files:
+
+```bash
+docker compose -f docker-compose.anvil.yml up --build
+docker compose --env-file docker-compose.sepolia.env -f docker-compose.sepolia.yml up --build
+docker compose --env-file docker-compose.prod.env -f docker-compose.prod.yml up --build
 ```

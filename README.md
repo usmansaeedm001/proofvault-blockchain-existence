@@ -94,6 +94,7 @@ The frontend never writes directly to the blockchain. All blockchain operations 
 ```text
 proofvault/
   frontend/
+    docker-compose.yml
   backend/
     proofvault-api/
     authserver/
@@ -102,6 +103,10 @@ proofvault/
   blockchain/
   docs/
   docker-compose.yml
+  docker-compose.anvil.yml
+  docker-compose.sepolia.yml
+  docker-compose.prod.yml
+  docker-compose.*.env.example
 ```
 
 ## Full Stack Local Run
@@ -116,7 +121,30 @@ Prerequisites:
 Run the full stack from the project root:
 
 ```bash
-docker compose -f backend/docker-compose.yml -f docker-compose.yml up --build
+docker compose up --build
+```
+
+The root `docker-compose.yml` is the default full-stack Anvil profile. Explicit environment files are also available:
+
+```bash
+# Anvil local chain
+docker compose -f docker-compose.anvil.yml up --build
+
+# Sepolia testnet
+docker compose -f docker-compose.sepolia.yml up --build
+
+# Production-style runtime
+docker compose -f docker-compose.prod.yml up --build
+```
+
+For Sepolia and production, copy the matching root env example first:
+
+```bash
+cp docker-compose.sepolia.env.example docker-compose.sepolia.env
+docker compose --env-file docker-compose.sepolia.env -f docker-compose.sepolia.yml up --build
+
+cp docker-compose.prod.env.example docker-compose.prod.env
+docker compose --env-file docker-compose.prod.env -f docker-compose.prod.yml up --build
 ```
 
 Available services:
@@ -162,7 +190,7 @@ If you previously ran the database before the auth server was added, reset local
 
 ```bash
 docker compose -f backend/docker-compose.yml down -v
-docker compose -f backend/docker-compose.yml -f docker-compose.yml up --build
+docker compose up --build
 ```
 
 ## Backend Only
@@ -190,6 +218,17 @@ Backend services include:
 
 More backend details are available in [`backend/README.md`](./backend/README.md).
 
+## Frontend Only With Docker
+
+Run only the frontend container from inside `frontend/`:
+
+```bash
+cd frontend
+docker compose up --build
+```
+
+This serves the frontend on `http://localhost:5173` and expects the API and auth server to be available on `http://localhost:8080` and `http://localhost:9000`.
+
 ## Profiles
 
 | Profile | Chain | Chain ID | Frontend env |
@@ -201,6 +240,14 @@ More backend details are available in [`backend/README.md`](./backend/README.md)
 For Anvil, copy the Anvil env examples to your real env files and run the backend with `SPRING_PROFILES_ACTIVE=anvil`.
 
 For Sepolia, copy the Sepolia env examples and run the backend with `SPRING_PROFILES_ACTIVE=sepolia`.
+
+For Docker-based full-stack runs, use the matching root Compose file:
+
+```bash
+docker compose -f docker-compose.anvil.yml up --build
+docker compose --env-file docker-compose.sepolia.env -f docker-compose.sepolia.yml up --build
+docker compose --env-file docker-compose.prod.env -f docker-compose.prod.yml up --build
+```
 
 ## Frontend Development
 

@@ -1,0 +1,22 @@
+services:
+  proofvault-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
+        NEXT_PUBLIC_AUTH_BASE_URL: http://localhost:9000
+        NEXT_PUBLIC_AUTH_CLIENT_ID: proofvault-spa
+        NEXT_PUBLIC_AUTH_REDIRECT_URI: http://localhost:5173/oauth2/callback
+        NEXT_PUBLIC_AUTH_SCOPES: openid profile email proof:read proof:write
+        NEXT_PUBLIC_WALLET_CHAIN_ID: 31337
+        NEXT_PUBLIC_WALLET_CHAIN_NAME: Local Anvil
+        NEXT_PUBLIC_WALLET_RPC_URL: http://172.25.179.4:8545
+        NEXT_PUBLIC_WALLET_EXPLORER_URL: ""
+        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME: Anvil Ether
+        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_SYMBOL: ETH
+    image: proofvault-frontend:local
+    container_name: proofvault-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"

@@ -3,6 +3,8 @@ dist/
 target/
 .env
 .env.local
+docker-compose*.env
+!docker-compose*.env.example
 out/
 cache/
 *.log
