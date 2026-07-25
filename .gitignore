@@ -13,10 +13,10 @@ cache/
 /.idea/
 /.codex/
 /.agents/
-/blockchain/broadcast/
-/blockchain/lib/
-/blockchain/cache/
-/blockchain/build/
+/onchain/broadcast/
+/onchain/lib/
+/onchain/cache/
+/onchain/build/
 # Next.js build output
 .next/
 

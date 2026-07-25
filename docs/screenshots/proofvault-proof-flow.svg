@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
   <title id="title">ProofVault upload and verification flow</title>
-  <desc id="desc">A product snapshot showing backend-controlled file anchoring, proof history, public verification, on-chain lookup, and certificate download.</desc>
+  <desc id="desc">A product snapshot showing offchain-controlled file anchoring, proof history, public verification, on-chain lookup, and certificate download.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#080b10"/>
@@ -66,7 +66,7 @@
       <rect x="1238" y="546" width="46" height="38" rx="8" fill="#172231" stroke="#334158"/>
       <path d="M1251 565h20M1261 555v20" stroke="#67d8ff" stroke-width="3"/>
       <rect x="566" y="648" width="756" height="46" rx="8" fill="#12382d" stroke="#2d8b6d"/>
-      <text x="598" y="677" fill="#54f4b4" font-size="16" font-weight="800">Certificate ready after backend anchoring and blockchain receipt</text>
+      <text x="598" y="677" fill="#54f4b4" font-size="16" font-weight="800">Certificate ready after offchain anchoring and blockchain receipt</text>
     </g>
   </g>
 </svg>

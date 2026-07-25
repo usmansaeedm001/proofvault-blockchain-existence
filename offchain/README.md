@@ -1,22 +1,22 @@
-# ProofVault Backend
+# ProofVault Offchain
 
-Backend services are split into two Spring Boot microservices:
+Offchain services are split into two Spring Boot microservices:
 
 - `proofvault-api/`: ProofVault resource API for proofs, subscriptions, blockchain anchoring, certificates, Postman collection, and API Dockerfile.
 - `authserver/`: Spring Authorization Server for OAuth2 and OpenID Connect.
 
-Shared backend infrastructure lives here:
+Shared offchain infrastructure lives here:
 
 - `docker-compose.yml`
 - `docker/`: MySQL init scripts, OpenTelemetry Collector, Prometheus, and Grafana dashboards.
 
-## Backend Stack
+## Offchain Stack
 
 ```bash
-docker compose -f backend/docker-compose.yml up --build
+docker compose -f offchain/docker-compose.yml up --build
 ```
 
-Or from inside `backend/`:
+Or from inside `offchain/`:
 
 ```bash
 docker compose up --build

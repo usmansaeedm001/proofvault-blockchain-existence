@@ -30,7 +30,7 @@ services:
 
   proofvault-api:
     build:
-      context: ./backend/proofvault-api
+      context: ./offchain/proofvault-api
       dockerfile: Dockerfile
     image: proofvault-api:prod
     container_name: proofvault-api
@@ -73,7 +73,7 @@ services:
 
   proofvault-authserver:
     build:
-      context: ./backend/authserver
+      context: ./offchain/authserver
       dockerfile: Dockerfile
     image: proofvault-authserver:prod
     container_name: proofvault-authserver
@@ -123,7 +123,7 @@ services:
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - ./backend/docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./offchain/docker/mysql/init:/docker-entrypoint-initdb.d:ro
       - proofvault-prod-mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
@@ -140,7 +140,7 @@ services:
     restart: unless-stopped
     command: ["--config=/etc/otelcol-contrib/config.yml"]
     volumes:
-      - ./backend/docker/otel-collector-config.yml:/etc/otelcol-contrib/config.yml:ro
+      - ./offchain/docker/otel-collector-config.yml:/etc/otelcol-contrib/config.yml:ro
     ports:
       - "${OTEL_GRPC_PORT:-4317}:4317"
       - "${OTEL_HTTP_PORT:-4318}:4318"
@@ -157,7 +157,7 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.retention.time=15d
     volumes:
-      - ./backend/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./offchain/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - proofvault-prod-prometheus-data:/prometheus
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
@@ -176,8 +176,8 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD}"
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
-      - ./backend/docker/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./backend/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./offchain/docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./offchain/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - proofvault-prod-grafana-data:/var/lib/grafana
     ports:
       - "${GRAFANA_PORT:-3000}:3000"
