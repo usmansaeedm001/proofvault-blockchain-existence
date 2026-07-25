@@ -23,7 +23,7 @@ Local defaults:
 From the project root:
 
 ```bash
-docker compose -f backend/docker-compose.yml up --build
+docker compose -f offchain/docker-compose.yml up --build
 ```
 
 Auth server URLs:

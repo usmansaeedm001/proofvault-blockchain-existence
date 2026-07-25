@@ -43,14 +43,18 @@ public class AuthServerBootstrapper implements ApplicationRunner {
 			return;
 		}
 
+		LOGGER.info("Auth server bootstrap started issuer={} publicClientId={} serviceClientId={}", properties.issuer(), properties.bootstrap().publicClientId(),
+			properties.bootstrap().clientId());
 		createUserIfMissing();
 		createServiceClientIfMissing();
 		createPublicSpaClientIfMissing();
+		LOGGER.info("Auth server bootstrap completed issuer={}", properties.issuer());
 	}
 
 	private void createUserIfMissing() {
 		String username = properties.bootstrap().userEmail().toLowerCase();
 		if (userDetailsManager.userExists(username)) {
+			LOGGER.debug("Bootstrap auth user already exists username={}", username);
 			return;
 		}
 
@@ -62,6 +66,7 @@ public class AuthServerBootstrapper implements ApplicationRunner {
 	private void createServiceClientIfMissing() {
 		String clientId = properties.bootstrap().clientId();
 		if (registeredClientRepository.findByClientId(clientId) != null) {
+			LOGGER.debug("Bootstrap service OAuth2 client already exists clientId={}", clientId);
 			return;
 		}
 
@@ -96,6 +101,7 @@ public class AuthServerBootstrapper implements ApplicationRunner {
 	private void createPublicSpaClientIfMissing() {
 		String clientId = properties.bootstrap().publicClientId();
 		if (registeredClientRepository.findByClientId(clientId) != null) {
+			LOGGER.debug("Bootstrap public OAuth2 client already exists clientId={}", clientId);
 			return;
 		}
 

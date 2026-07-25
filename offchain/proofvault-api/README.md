@@ -1,4 +1,4 @@
-# ProofVault Backend
+# ProofVault Offchain API
 
 Spring Boot API for ProofVault with OAuth2 resource-server security, user-scoped proof storage, Flyway migrations, MySQL-ready persistence, and OpenTelemetry/Micrometer observability.
 
@@ -23,10 +23,10 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 Run the backend Docker stack from the project root:
 
 ```bash
-docker compose -f backend/docker-compose.yml up --build
+docker compose -f offchain/docker-compose.yml up --build
 ```
 
-Or from inside `backend/`:
+Or from inside `offchain/`:
 
 ```bash
 docker compose up --build

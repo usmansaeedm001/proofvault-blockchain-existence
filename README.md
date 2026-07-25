@@ -158,6 +158,9 @@ Available services:
 | External Anvil RPC | `http://172.25.179.4:8545` |
 | Prometheus | `http://localhost:9090` |
 | Grafana | `http://localhost:3000` |
+| Loki | `http://localhost:3100` |
+| Tempo | `http://localhost:3200` |
+| Promtail | `http://localhost:9080` |
 | OTEL Collector metrics | `http://localhost:8888/metrics` |
 
 Grafana credentials:
@@ -345,15 +348,25 @@ The stack includes production-style observability:
 
 - OpenTelemetry tracing from offchain services
 - Prometheus metrics scraping
+- Loki log storage through Promtail
+- Tempo trace storage from the OTEL Collector
 - Grafana dashboards for:
   - ProofVault API overview
   - Auth server overview
   - Blockchain and OTEL activity
+  - Logs and traces
 
 Grafana dashboards are provisioned from:
 
 ```text
 offchain/docker/grafana/dashboards/
+```
+
+Useful Grafana Explore queries:
+
+```logql
+{service="proofvault-api"}
+{service="proofvault-authserver"}
 ```
 
 ## Security Notes

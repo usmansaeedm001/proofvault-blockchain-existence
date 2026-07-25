@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: ProofVault Loki
+    type: loki
+    uid: proofvault-loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherRegex: 'traceId="?([A-Fa-f0-9]{32})"?'
+          datasourceUid: proofvault-tempo
+          url: '$${__value.raw}'

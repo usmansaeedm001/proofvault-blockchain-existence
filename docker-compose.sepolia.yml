@@ -149,6 +149,50 @@ services:
       - "4318:4318"
       - "8888:8888"
       - "8889:8889"
+    depends_on:
+      - tempo
+    networks:
+      - proofvault
+
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: proofvault-loki
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./offchain/docker/loki-config.yml:/etc/loki/config.yml:ro
+      - proofvault-sepolia-loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - proofvault
+
+  promtail:
+    image: grafana/promtail:3.1.0
+    container_name: proofvault-promtail
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./offchain/docker/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "9080:9080"
+    depends_on:
+      - loki
+    networks:
+      - proofvault
+
+  tempo:
+    image: grafana/tempo:2.5.0
+    container_name: proofvault-tempo
+    restart: unless-stopped
+    user: "0:0"
+    command: ["-config.file=/etc/tempo/config.yml"]
+    volumes:
+      - ./offchain/docker/tempo-config.yml:/etc/tempo/config.yml:ro
+      - proofvault-sepolia-tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200"
     networks:
       - proofvault
 
@@ -186,6 +230,8 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+      - loki
+      - tempo
     networks:
       - proofvault
 
@@ -197,3 +243,5 @@ volumes:
   proofvault-sepolia-mysql-data:
   proofvault-sepolia-prometheus-data:
   proofvault-sepolia-grafana-data:
+  proofvault-sepolia-loki-data:
+  proofvault-sepolia-tempo-data:
