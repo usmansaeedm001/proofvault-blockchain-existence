@@ -10,6 +10,7 @@ spring:
 
 proofvault:
   auth:
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS}
     bootstrap:
       enabled: false
     signing:

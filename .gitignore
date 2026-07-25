@@ -6,6 +6,7 @@ target/
 out/
 cache/
 *.log
+*.err
 .DS_Store
 /.idea/
 /.codex/

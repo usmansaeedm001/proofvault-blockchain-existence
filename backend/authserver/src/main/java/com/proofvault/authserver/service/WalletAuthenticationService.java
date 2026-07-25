@@ -86,6 +86,9 @@ public class WalletAuthenticationService {
 		}
 
 		WalletChallenge challenge = findActiveChallenge(walletAddress, request.nonce());
+		if (challenge.chainId() != chainId) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet challenge was issued for a different chain.");
+		}
 		String message = messageFactory.create(challenge.domain(), properties.wallet().uri(), walletAddress, chainId, request.nonce(), challenge.issuedAt(), challenge.expiresAt());
 		if (!signatureVerifier.verify(message, request.signature(), walletAddress)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet signature verification failed.");

@@ -57,7 +57,7 @@ proofvault:
   auth:
     issuer: ${AUTH_ISSUER:http://localhost:9000}
     audience: ${AUTH_AUDIENCE:proofvault-api}
-    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
     bootstrap:
       enabled: ${AUTH_BOOTSTRAP_ENABLED:true}
       user-email: ${AUTH_BOOTSTRAP_USER_EMAIL:admin@proofvault.local}
