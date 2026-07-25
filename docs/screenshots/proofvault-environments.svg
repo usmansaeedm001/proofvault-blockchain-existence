@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">ProofVault environment-specific Docker Compose stacks</title>
+  <desc id="desc">A product snapshot showing Anvil, Sepolia, and production Docker Compose profiles for the ProofVault full-stack application.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="ok" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#54f4b4"/>
+      <stop offset="1" stop-color="#67d8ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#000" flood-opacity=".34"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="36" y="34" width="1368" height="832" rx="10" fill="#0b1018" stroke="#243044"/>
+  <g font-family="Inter,Segoe UI,Arial">
+    <text x="78" y="108" fill="#54f4b4" font-size="14" font-weight="800">ROOT DOCKER COMPOSE PROFILES</text>
+    <text x="78" y="178" fill="#f7fbff" font-size="52" font-weight="900">One project, three</text>
+    <text x="78" y="240" fill="#f7fbff" font-size="52" font-weight="900">runtime environments.</text>
+    <text x="80" y="286" fill="#c8d2e1" font-size="19">Full-stack Docker Compose files now run frontend, API, auth server, MySQL, OTEL, Prometheus, and Grafana by profile.</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
+    <rect x="78" y="354" width="386" height="348" rx="8" fill="#121923" stroke="#273346"/>
+    <rect x="110" y="390" width="112" height="30" rx="15" fill="#12382d"/>
+    <text x="132" y="411" fill="#54f4b4" font-size="13" font-weight="800">ANVIL</text>
+    <text x="110" y="468" fill="#ffffff" font-size="31" font-weight="900">Local demo stack</text>
+    <text x="110" y="514" fill="#95a3b8" font-size="17">Chain ID 31337</text>
+    <text x="110" y="548" fill="#95a3b8" font-size="17">RPC http://172.25.179.4:8545</text>
+    <rect x="110" y="586" width="302" height="54" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="132" y="620" fill="#54f4b4" font-family="Consolas,monospace" font-size="15">docker-compose.anvil.yml</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
+    <rect x="526" y="354" width="386" height="348" rx="8" fill="#121923" stroke="#273346"/>
+    <rect x="558" y="390" width="126" height="30" rx="15" fill="#13303b"/>
+    <text x="580" y="411" fill="#67d8ff" font-size="13" font-weight="800">SEPOLIA</text>
+    <text x="558" y="468" fill="#ffffff" font-size="31" font-weight="900">Testnet client demo</text>
+    <text x="558" y="514" fill="#95a3b8" font-size="17">Chain ID 11155111</text>
+    <text x="558" y="548" fill="#95a3b8" font-size="17">Contract and anchor key via env</text>
+    <rect x="558" y="586" width="302" height="54" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="580" y="620" fill="#67d8ff" font-family="Consolas,monospace" font-size="15">docker-compose.sepolia.yml</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
+    <rect x="974" y="354" width="386" height="348" rx="8" fill="#121923" stroke="#273346"/>
+    <rect x="1006" y="390" width="150" height="30" rx="15" fill="#372e14"/>
+    <text x="1028" y="411" fill="#f6c85f" font-size="13" font-weight="800">PRODUCTION</text>
+    <text x="1006" y="468" fill="#ffffff" font-size="31" font-weight="900">Fail-fast runtime</text>
+    <text x="1006" y="514" fill="#95a3b8" font-size="17">Env-driven chain and domains</text>
+    <text x="1006" y="548" fill="#95a3b8" font-size="17">Requires signing keys and secrets</text>
+    <rect x="1006" y="586" width="302" height="54" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="1028" y="620" fill="#f6c85f" font-family="Consolas,monospace" font-size="15">docker-compose.prod.yml</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial">
+    <rect x="220" y="760" width="1000" height="56" rx="8" fill="url(#ok)"/>
+    <text x="270" y="796" fill="#06110c" font-size="18" font-weight="900">Default root command remains: docker compose up --build  |  Frontend: 5173  |  Grafana: 3000</text>
+  </g>
+</svg>
