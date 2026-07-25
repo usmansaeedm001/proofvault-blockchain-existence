@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">ProofVault professional dashboard</title>
+  <desc id="desc">A dark ProofVault dashboard showing blockchain insights, proof metrics, and audit-ready charts.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="0.45" stop-color="#101723"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17382d"/>
+      <stop offset="0.55" stop-color="#121c2a"/>
+      <stop offset="1" stop-color="#2b2615"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#54f4b4"/>
+      <stop offset="1" stop-color="#d7ffe9"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#ffffff" stroke-opacity="0.055"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="28" y="24" width="1384" height="852" rx="10" fill="#0b1018" stroke="#243044"/>
+  <rect x="52" y="48" width="1336" height="282" rx="8" fill="url(#hero)" stroke="#2c3a4e" filter="url(#shadow)"/>
+  <rect x="52" y="48" width="1336" height="282" rx="8" fill="url(#grid)" opacity="0.78"/>
+  <rect x="90" y="86" width="246" height="34" rx="17" fill="#12382d" stroke="#2d8b6d"/>
+  <circle cx="111" cy="103" r="7" fill="#54f4b4"/>
+  <text x="128" y="108" fill="#54f4b4" font-family="Inter,Segoe UI,Arial" font-size="14" font-weight="700">PROOFVAULT EVIDENCE DASHBOARD</text>
+  <text x="90" y="178" fill="#f7fbff" font-family="Inter,Segoe UI,Arial" font-size="58" font-weight="800">Proof of existence,</text>
+  <text x="90" y="238" fill="#f7fbff" font-family="Inter,Segoe UI,Arial" font-size="58" font-weight="800">built for evidence.</text>
+  <text x="92" y="278" fill="#c8d2e1" font-family="Inter,Segoe UI,Arial" font-size="19">Anchor file fingerprints, verify originality, and monitor chain health.</text>
+  <rect x="1010" y="78" width="334" height="222" rx="8" fill="#080c12" stroke="#334158"/>
+  <text x="1036" y="112" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="15" font-weight="700">Vault Network</text>
+  <rect x="1242" y="92" width="76" height="24" rx="12" fill="#12382d"/>
+  <text x="1256" y="109" fill="#54f4b4" font-family="Inter,Segoe UI,Arial" font-size="11" font-weight="700">LIVE</text>
+  <g font-family="Inter,Segoe UI,Arial">
+    <rect x="1036" y="136" width="132" height="58" rx="8" fill="#121926" stroke="#263245"/>
+    <text x="1050" y="158" fill="#95a3b8" font-size="11" font-weight="700">MODE</text>
+    <text x="1050" y="181" fill="#ffffff" font-size="18" font-weight="800">testnet</text>
+    <rect x="1186" y="136" width="132" height="58" rx="8" fill="#121926" stroke="#263245"/>
+    <text x="1200" y="158" fill="#95a3b8" font-size="11" font-weight="700">NETWORK</text>
+    <text x="1200" y="181" fill="#ffffff" font-size="18" font-weight="800">sepolia</text>
+    <rect x="1036" y="210" width="132" height="58" rx="8" fill="#121926" stroke="#263245"/>
+    <text x="1050" y="232" fill="#95a3b8" font-size="11" font-weight="700">CHAIN ID</text>
+    <text x="1050" y="255" fill="#ffffff" font-size="18" font-weight="800">11155111</text>
+    <rect x="1186" y="210" width="132" height="58" rx="8" fill="#121926" stroke="#263245"/>
+    <text x="1200" y="232" fill="#95a3b8" font-size="11" font-weight="700">BLOCK</text>
+    <text x="1200" y="255" fill="#ffffff" font-size="18" font-weight="800">11319780</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial">
+    <rect x="52" y="352" width="321" height="124" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="84" y="394" fill="#95a3b8" font-size="13" font-weight="700">ON-CHAIN PROOFS</text>
+    <text x="84" y="442" fill="#ffffff" font-size="38" font-weight="800">12.8K</text>
+    <circle cx="322" cy="414" r="28" fill="#12382d"/><path d="M310 414h24M322 402v24" stroke="#54f4b4" stroke-width="4"/>
+    <rect x="389" y="352" width="321" height="124" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="421" y="394" fill="#95a3b8" font-size="13" font-weight="700">INDEXED PROOFS</text>
+    <text x="421" y="442" fill="#ffffff" font-size="38" font-weight="800">12.8K</text>
+    <circle cx="659" cy="414" r="28" fill="#372e14"/><path d="M647 424h24M647 414h24M647 404h24" stroke="#f6c85f" stroke-width="4"/>
+    <rect x="726" y="352" width="321" height="124" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="758" y="394" fill="#95a3b8" font-size="13" font-weight="700">YOUR VAULT</text>
+    <text x="758" y="442" fill="#ffffff" font-size="38" font-weight="800">84</text>
+    <circle cx="996" cy="414" r="28" fill="#13303b"/><path d="M982 414c8-18 20-18 28 0" stroke="#67d8ff" stroke-width="4" fill="none"/>
+    <rect x="1063" y="352" width="325" height="124" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="1095" y="394" fill="#95a3b8" font-size="13" font-weight="700">ANCHOR AVG</text>
+    <text x="1095" y="442" fill="#ffffff" font-size="38" font-weight="800">0.124s</text>
+    <circle cx="1332" cy="414" r="28" fill="#3d1620"/><path d="M1320 426l24-24" stroke="#fb7185" stroke-width="4"/>
+  </g>
+  <rect x="52" y="500" width="872" height="312" rx="8" fill="#121923" stroke="#273346"/>
+  <text x="84" y="540" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="700">PROOF ACTIVITY</text>
+  <text x="84" y="572" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="25" font-weight="800">Anchor and verification velocity</text>
+  <polyline points="96,742 220,710 344,724 468,668 592,648 716,594 852,580" fill="none" stroke="#54f4b4" stroke-width="5"/>
+  <polyline points="96,772 220,748 344,704 468,688 592,622 716,604 852,548" fill="none" stroke="#67d8ff" stroke-width="5"/>
+  <g stroke="#ffffff" stroke-opacity="0.08">
+    <line x1="96" y1="620" x2="872" y2="620"/><line x1="96" y1="680" x2="872" y2="680"/><line x1="96" y1="740" x2="872" y2="740"/>
+  </g>
+  <rect x="948" y="500" width="440" height="312" rx="8" fill="#121923" stroke="#273346"/>
+  <text x="980" y="540" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="700">CHAIN PARITY</text>
+  <text x="980" y="572" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="25" font-weight="800">Sync health</text>
+  <g font-family="Inter,Segoe UI,Arial">
+    <text x="980" y="630" fill="#c8d2e1" font-size="16">On-chain sync</text><text x="1310" y="630" fill="#ffffff" font-size="16" font-weight="800">100%</text>
+    <rect x="980" y="646" width="356" height="12" rx="6" fill="#273346"/><rect x="980" y="646" width="356" height="12" rx="6" fill="#54f4b4"/>
+    <text x="980" y="696" fill="#c8d2e1" font-size="16">Verification speed</text><text x="1318" y="696" fill="#ffffff" font-size="16" font-weight="800">98%</text>
+    <rect x="980" y="712" width="356" height="12" rx="6" fill="#273346"/><rect x="980" y="712" width="348" height="12" rx="6" fill="#67d8ff"/>
+    <text x="980" y="762" fill="#c8d2e1" font-size="16">Error resistance</text><text x="1320" y="762" fill="#ffffff" font-size="16" font-weight="800">99%</text>
+    <rect x="980" y="778" width="356" height="12" rx="6" fill="#273346"/><rect x="980" y="778" width="352" height="12" rx="6" fill="#f6c85f"/>
+  </g>
+</svg>

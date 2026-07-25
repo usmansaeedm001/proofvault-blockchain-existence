@@ -3,18 +3,27 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/proofvault?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:proofvault}
+    password: ${DB_PASSWORD:proofvault_local_password}
     driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${OAUTH2_ISSUER_URI}
-          jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:9000}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
 
 proofvault:
+  blockchain:
+    mode: ${BLOCKCHAIN_MODE:ethereum}
+    network-name: ${BLOCKCHAIN_NETWORK:local-anvil}
+    explorer-base-url: ${EXPLORER_BASE_URL:http://172.25.179.4:8545/tx/}
+    rpc-url: ${BLOCKCHAIN_RPC_URL:http://172.25.179.4:8545}
+    chain-id: ${BLOCKCHAIN_CHAIN_ID:31337}
+    contract-address: ${PROOFVAULT_CONTRACT_ADDRESS:0xe7f1725e7734ce288f8367e1bb143e90bb3f0512}
+    anchor-private-key: ${PROOFVAULT_ANCHOR_PRIVATE_KEY:${PRIVATE_KEY:0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}}
+    anchor-address: ${PROOFVAULT_ANCHOR_ADDRESS:0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266}
   security:
     authentication-enabled: true
 

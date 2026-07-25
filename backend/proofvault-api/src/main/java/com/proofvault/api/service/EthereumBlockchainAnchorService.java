@@ -48,7 +48,6 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 	private static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 	private final ProofVaultProperties.Blockchain properties;
 	private final Web3j web3j;
-	private final TransactionManager transactionManager;
 	private final PollingTransactionReceiptProcessor receiptProcessor;
 	private final ObservationRegistry observationRegistry;
 	private final Counter anchorCounter;
@@ -59,9 +58,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 
 	public EthereumBlockchainAnchorService(ProofVaultProperties proofVaultProperties, MeterRegistry meterRegistry, ObservationRegistry observationRegistry) {
 		this.properties = proofVaultProperties.blockchain();
-		validateConfiguration();
 		this.web3j = Web3j.build(new HttpService(properties.rpcUrl()));
-		this.transactionManager = new RawTransactionManager(web3j, Credentials.create(properties.anchorPrivateKey()), properties.chainId());
 		this.receiptProcessor = new PollingTransactionReceiptProcessor(web3j, 1_000, 60);
 		this.observationRegistry = observationRegistry;
 		this.anchorCounter = Counter.builder("proofvault.blockchain.anchors")
@@ -98,13 +95,14 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
 			.observe(() -> anchorTimer.record(() -> {
 				try {
+					validateWriteConfiguration();
 					anchorCounter.increment();
 					Function function = new Function("storeProof", Arrays.asList(new Bytes32(hexBytes32(fileHash)), new Bytes32(hexBytes32(metadataHash))),
 						Collections.emptyList());
 
 					String encodedFunction = FunctionEncoder.encode(function);
 					String transactionHash =
-						transactionManager.sendTransaction(BigInteger.valueOf(properties.gasPriceWei()), BigInteger.valueOf(properties.gasLimit()),
+						transactionManager().sendTransaction(BigInteger.valueOf(properties.gasPriceWei()), BigInteger.valueOf(properties.gasLimit()),
 							properties.contractAddress(), encodedFunction, BigInteger.ZERO).getTransactionHash();
 
 					TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(transactionHash);
@@ -127,6 +125,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
 			.observe(() -> verificationTimer.record(() -> {
 				try {
+					validateReadConfiguration();
 					verificationCounter.increment();
 					Function function = new Function("verifyProof", List.of(new Bytes32(hexBytes32(fileHash))),
 						List.of(new TypeReference<Bool>() {}, new TypeReference<Address>() {}, new TypeReference<Uint64>() {},
@@ -149,11 +148,21 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 
 	@Override
 	public BlockchainStatusResponse status() {
+		if (!hasText(properties.rpcUrl())) {
+			return new BlockchainStatusResponse("ethereum", properties.networkName(), false, BigInteger.valueOf(properties.chainId()), null,
+				properties.contractAddress(), properties.anchorAddress(), "BLOCKCHAIN_RPC_URL is required when BLOCKCHAIN_MODE=ethereum.");
+		}
+
 		try {
 			EthChainId chainId = web3j.ethChainId().send();
 			EthBlockNumber blockNumber = web3j.ethBlockNumber().send();
-			return new BlockchainStatusResponse("ethereum", properties.networkName(), !chainId.hasError() && !blockNumber.hasError(), chainId.getChainId(),
-				blockNumber.getBlockNumber(), properties.contractAddress(), properties.anchorAddress(), "Ethereum JSON-RPC connection is active.");
+			boolean rpcConnected = !chainId.hasError() && !blockNumber.hasError();
+			String configurationMessage = configurationMessage();
+			String message = rpcConnected
+				? configurationMessage == null ? "Ethereum JSON-RPC connection is active." : "Ethereum JSON-RPC connection is active. " + configurationMessage
+				: "Ethereum JSON-RPC connection returned an error.";
+			return new BlockchainStatusResponse("ethereum", properties.networkName(), rpcConnected && configurationMessage == null, chainId.getChainId(),
+				blockNumber.getBlockNumber(), properties.contractAddress(), properties.anchorAddress(), message);
 		} catch (IOException exception) {
 			errorCounter.increment();
 			return new BlockchainStatusResponse("ethereum", properties.networkName(), false, BigInteger.valueOf(properties.chainId()), null,
@@ -164,6 +173,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 	@Override
 	public BigInteger totalProofs() {
 		try {
+			validateReadConfiguration();
 			Function function = new Function("totalProofs", Collections.emptyList(), List.of(new TypeReference<Uint256>() {}));
 			List<Type> values = call(function);
 			return (BigInteger) values.get(0).getValue();
@@ -174,6 +184,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 	}
 
 	private List<Type> call(Function function) throws IOException {
+		validateReadConfiguration();
 		String encodedFunction = FunctionEncoder.encode(function);
 		EthCall response = web3j.ethCall(
 			Transaction.createEthCallTransaction(hasText(properties.anchorAddress()) ? properties.anchorAddress() : ZERO_ADDRESS, properties.contractAddress(),
@@ -186,16 +197,31 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 		return FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
 	}
 
-	private void validateConfiguration() {
-		if (!hasText(properties.rpcUrl())) {
-			throw new IllegalStateException("BLOCKCHAIN_RPC_URL is required when BLOCKCHAIN_MODE=ethereum.");
-		}
+	private void validateReadConfiguration() {
 		if (!hasText(properties.contractAddress())) {
 			throw new IllegalStateException("PROOFVAULT_CONTRACT_ADDRESS is required when BLOCKCHAIN_MODE=ethereum.");
 		}
+	}
+
+	private void validateWriteConfiguration() {
+		validateReadConfiguration();
 		if (!hasText(properties.anchorPrivateKey())) {
 			throw new IllegalStateException("PROOFVAULT_ANCHOR_PRIVATE_KEY is required when BLOCKCHAIN_MODE=ethereum.");
 		}
+	}
+
+	private String configurationMessage() {
+		if (!hasText(properties.contractAddress())) {
+			return "PROOFVAULT_CONTRACT_ADDRESS is not configured; deploy the proxy and set it before using on-chain proof APIs.";
+		}
+		if (!hasText(properties.anchorPrivateKey())) {
+			return "PROOFVAULT_ANCHOR_PRIVATE_KEY is not configured; read APIs can work, but anchoring requires an anchor key.";
+		}
+		return null;
+	}
+
+	private TransactionManager transactionManager() {
+		return new RawTransactionManager(web3j, Credentials.create(properties.anchorPrivateKey()), properties.chainId());
 	}
 
 	private byte[] hexBytes32(String value) {

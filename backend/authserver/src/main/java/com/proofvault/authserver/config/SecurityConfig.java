@@ -56,10 +56,15 @@ public class SecurityConfig {
 		http.cors(cors -> cors.configurationSource(corsConfigurationSource))
 			.authorizeHttpRequests(authorize -> authorize.requestMatchers("/actuator/health/**", "/actuator/info", "/actuator/prometheus")
 				.permitAll()
+				.requestMatchers("/", "/favicon.ico")
+				.permitAll()
 				.requestMatchers("/api/authserver/metadata")
+				.permitAll()
+				.requestMatchers("/api/wallet/**")
 				.permitAll()
 				.anyRequest()
 				.authenticated())
+			.csrf(csrf -> csrf.ignoringRequestMatchers("/api/wallet/**"))
 			.formLogin(Customizer.withDefaults())
 			.logout(logout -> logout.logoutSuccessUrl("/login?logout"));
 

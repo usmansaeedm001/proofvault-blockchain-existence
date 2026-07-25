@@ -27,12 +27,60 @@ Services:
 - API: `http://localhost:8080`
 - Auth server: `http://localhost:9000`
 - MySQL: `localhost:3306`
-- Anvil: `http://localhost:8545`
+- External Anvil RPC: `http://172.25.179.4:8545`
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
 - OTEL Collector internal metrics: `http://localhost:8888/metrics`
 - OTLP HTTP: `http://localhost:4318`
 - OTLP gRPC: `localhost:4317`
+
+## Chain Profiles
+
+ProofVault now has explicit chain profiles:
+
+| Profile | Chain | Chain ID | Purpose |
+| --- | --- | --- | --- |
+| `anvil` | Local Anvil | `31337` | Local blockchain development and demos |
+| `sepolia` | Sepolia testnet | `11155111` | Client demos with a public testnet |
+| `prod` | Production network | env driven | Deployed SaaS runtime |
+
+For Anvil local chain:
+
+```bash
+SPRING_PROFILES_ACTIVE=anvil
+```
+
+Use these examples:
+
+- `proofvault-api/.env.anvil.example`
+- `authserver/.env.anvil.example`
+- `../frontend/.env.anvil.example`
+
+For Sepolia testnet:
+
+```bash
+SPRING_PROFILES_ACTIVE=sepolia
+```
+
+Use these examples:
+
+- `proofvault-api/.env.sepolia.example`
+- `authserver/.env.sepolia.example`
+- `../frontend/.env.sepolia.example`
+
+For production:
+
+```bash
+SPRING_PROFILES_ACTIVE=prod
+```
+
+Use these examples:
+
+- `proofvault-api/.env.production.example`
+- `authserver/.env.production.example`
+- `../frontend/.env.production.example`
+
+The frontend must use the same wallet chain ID as the auth server. The API must use the same blockchain chain ID and deployed proxy address.
 
 Local bootstrap auth values:
 

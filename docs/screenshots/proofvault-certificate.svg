@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">ProofVault certificate export</title>
+  <desc id="desc">A product snapshot showing a ProofVault certificate with hash, timestamp, transaction, owner wallet, and Sepolia details.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07090d"/><stop offset="1" stop-color="#101722"/></linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfdff"/><stop offset="1" stop-color="#eef4f8"/></linearGradient>
+    <linearGradient id="seal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#54f4b4"/><stop offset="1" stop-color="#67d8ff"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#000" flood-opacity=".36"/></filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <g font-family="Inter,Segoe UI,Arial">
+    <text x="78" y="108" fill="#54f4b4" font-size="14" font-weight="800">CERTIFICATE EXPORT</text>
+    <text x="78" y="178" fill="#f7fbff" font-size="52" font-weight="900">Timestamped proof,</text>
+    <text x="78" y="240" fill="#f7fbff" font-size="52" font-weight="900">ready for client records.</text>
+    <text x="80" y="286" fill="#c8d2e1" font-size="19">Downloadable evidence includes the file fingerprint, Sepolia transaction, wallet identity, and verification metadata.</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="190" y="342" width="746" height="474" rx="8" fill="url(#paper)" stroke="#d5dde6"/>
+    <rect x="228" y="380" width="670" height="78" rx="6" fill="#101722"/>
+    <text x="264" y="429" fill="#fff" font-family="Inter,Segoe UI,Arial" font-size="27" font-weight="900">ProofVault Certificate</text>
+    <text x="740" y="429" fill="#54f4b4" font-family="Inter,Segoe UI,Arial" font-size="14" font-weight="900">VERIFIED</text>
+    <circle cx="812" cy="540" r="54" fill="url(#seal)"/>
+    <path d="M788 542l16 16 32-42" stroke="#071018" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="264" y="514" fill="#657085" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="800">FILE NAME</text>
+    <text x="264" y="546" fill="#111827" font-family="Inter,Segoe UI,Arial" font-size="22" font-weight="800">client-contract-v7.pdf</text>
+    <text x="264" y="600" fill="#657085" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="800">SHA-256 HASH</text>
+    <rect x="264" y="618" width="500" height="42" rx="6" fill="#f4f7fa" stroke="#dfe6ee"/>
+    <text x="284" y="645" fill="#111827" font-family="Consolas,monospace" font-size="15">f4d2b94db19c3187...0efddbb8b4f634aa</text>
+    <text x="264" y="708" fill="#657085" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="800">BLOCKCHAIN TIMESTAMP</text>
+    <text x="264" y="740" fill="#111827" font-family="Inter,Segoe UI,Arial" font-size="20" font-weight="800">2026-07-23 09:42 UTC</text>
+  </g>
+  <g filter="url(#shadow)" font-family="Inter,Segoe UI,Arial">
+    <rect x="984" y="342" width="360" height="474" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="1022" y="394" fill="#95a3b8" font-size="13" font-weight="800">CERTIFICATE METADATA</text>
+    <text x="1022" y="432" fill="#fff" font-size="28" font-weight="900">Audit packet</text>
+    <text x="1022" y="504" fill="#95a3b8" font-size="13" font-weight="800">NETWORK</text>
+    <text x="1022" y="532" fill="#fff" font-size="20" font-weight="800">Sepolia testnet</text>
+    <text x="1236" y="532" fill="#54f4b4" font-size="17" font-weight="800">11155111</text>
+    <text x="1022" y="594" fill="#95a3b8" font-size="13" font-weight="800">TRANSACTION</text>
+    <rect x="1022" y="612" width="280" height="42" rx="6" fill="#0a0f17" stroke="#273346"/>
+    <text x="1040" y="639" fill="#67d8ff" font-family="Consolas,monospace" font-size="15">0x91ac...54c17a</text>
+    <text x="1022" y="706" fill="#95a3b8" font-size="13" font-weight="800">OWNER WALLET</text>
+    <rect x="1022" y="724" width="280" height="42" rx="6" fill="#0a0f17" stroke="#273346"/>
+    <text x="1040" y="751" fill="#f6c85f" font-family="Consolas,monospace" font-size="15">0xf39F...2266</text>
+  </g>
+</svg>

@@ -180,6 +180,90 @@
       ]
     },
     {
+      "name": "Wallet Authentication",
+      "item": [
+        {
+          "name": "Create Wallet Nonce",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.nonce) pm.environment.set('walletNonce', body.nonce);",
+                  "if (body.message) pm.environment.set('walletMessage', body.message);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"{{walletAddress}}\",\n  \"chainId\": {{walletChainId}}\n}"
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/api/wallet/nonce",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wallet",
+                "nonce"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Authenticate Wallet Signature",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) pm.environment.set('accessToken', body.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"{{walletAddress}}\",\n  \"chainId\": {{walletChainId}},\n  \"nonce\": \"{{walletNonce}}\",\n  \"signature\": \"{{walletSignature}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/api/wallet/authenticate",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wallet",
+                "authenticate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Operations",
       "item": [
         {

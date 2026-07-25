@@ -46,8 +46,8 @@ forge build src/ProofVault.sol
 ## 3. Deploy UUPS Proxy
 
 ```bash
-export PROOFVAULT_ADMIN=$ADMIN
-export PROOFVAULT_ANCHOR=$ANCHOR
+export PROOFVAULT_ADMIN=${PROOFVAULT_ADMIN:-$ADMIN}
+export PROOFVAULT_ANCHOR=${PROOFVAULT_ANCHOR:-$ANCHOR}
 
 forge script script/DeployProofVault.s.sol:DeployProofVault \
   --rpc-url $RPC_URL \

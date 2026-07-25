@@ -1,6 +1,8 @@
 # ProofVault Auth Server
 
-Spring Authorization Server microservice for ProofVault. It provides OAuth2 and OpenID Connect issuer endpoints, persistent registered clients, persistent authorizations, local bootstrap users, JDBC-backed users, Prometheus metrics, and OpenTelemetry tracing.
+Spring Authorization Server microservice for ProofVault. It provides OAuth2 and OpenID Connect issuer endpoints, persistent registered clients, persistent authorizations, local bootstrap users, JDBC-backed users, wallet authentication, Prometheus metrics, and OpenTelemetry tracing.
+
+Wallet authentication uses a Sign-In With Ethereum style flow: the frontend requests a one-time nonce, the user signs the challenge in a browser wallet, and the auth server verifies wallet ownership before issuing a standard ProofVault bearer token.
 
 ## Local Run
 
@@ -31,6 +33,8 @@ Auth server URLs:
 - JWKS: `http://localhost:9000/oauth2/jwks`
 - Token endpoint: `http://localhost:9000/oauth2/token`
 - Authorization endpoint: `http://localhost:9000/oauth2/authorize`
+- Wallet nonce endpoint: `http://localhost:9000/api/wallet/nonce`
+- Wallet authenticate endpoint: `http://localhost:9000/api/wallet/authenticate`
 
 Client credentials token check:
 
@@ -46,14 +50,16 @@ curl -u proofvault-web:proofvault-local-secret \
 | Profile | Purpose | Database | Signing key |
 | --- | --- | --- | --- |
 | `local` | Fast local development | H2 | ephemeral allowed |
+| `anvil` | Local Anvil wallet auth | MySQL | ephemeral allowed |
+| `sepolia` | Sepolia wallet auth | MySQL | ephemeral allowed |
 | `docker` | Local container stack | MySQL | ephemeral allowed |
-| `dev` | Shared developer environment | MySQL | configured key required by default |
+| `dev` | Shared developer environment | MySQL | ephemeral allowed by default |
 | `staging` | Pre-production | MySQL | configured key required |
 | `prod` | Production | MySQL | configured key required |
 
 ## Production Settings
 
-Set these outside local development:
+Set these outside local and dev-only development:
 
 ```bash
 AUTH_ISSUER=https://auth.your-domain.example
@@ -62,6 +68,10 @@ AUTH_BOOTSTRAP_ENABLED=false
 AUTH_SIGNING_REQUIRE_CONFIGURED_KEY=true
 AUTH_SIGNING_PRIVATE_KEY_PEM="-----BEGIN PRIVATE KEY-----..."
 AUTH_SIGNING_PUBLIC_KEY_PEM="-----BEGIN PUBLIC KEY-----..."
+AUTH_WALLET_ENABLED=true
+AUTH_WALLET_CHAIN_ID=11155111
+AUTH_WALLET_DOMAIN=app.your-domain.example
+AUTH_WALLET_URI=https://app.your-domain.example
 DB_URL=jdbc:mysql://...
 DB_USERNAME=...
 DB_PASSWORD=...

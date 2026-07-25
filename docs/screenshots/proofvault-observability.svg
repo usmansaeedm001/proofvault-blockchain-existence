@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">ProofVault observability dashboards</title>
+  <desc id="desc">A monitoring snapshot showing API health, auth health, blockchain metrics, Prometheus, Grafana, and OpenTelemetry.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="1" stop-color="#121722"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="22" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="36" y="34" width="1368" height="832" rx="10" fill="#0b1018" stroke="#243044"/>
+  <text x="78" y="92" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="38" font-weight="800">Operational cockpit</text>
+  <text x="80" y="128" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="18">OpenTelemetry traces, Prometheus metrics, and Grafana dashboards for the full stack.</text>
+  <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
+    <rect x="78" y="178" width="390" height="220" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="110" y="220" fill="#95a3b8" font-size="13" font-weight="700">PROOFVAULT API</text>
+    <text x="110" y="262" fill="#54f4b4" font-size="46" font-weight="800">UP</text>
+    <text x="110" y="304" fill="#c8d2e1" font-size="17">Request rate, latency, JVM memory, DB pool</text>
+    <rect x="110" y="336" width="310" height="12" rx="6" fill="#273346"/><rect x="110" y="336" width="288" height="12" rx="6" fill="#54f4b4"/>
+    <rect x="526" y="178" width="390" height="220" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="558" y="220" fill="#95a3b8" font-size="13" font-weight="700">AUTH SERVER</text>
+    <text x="558" y="262" fill="#67d8ff" font-size="46" font-weight="800">OIDC</text>
+    <text x="558" y="304" fill="#c8d2e1" font-size="17">Login, token, JWKS, client bootstrap</text>
+    <rect x="558" y="336" width="310" height="12" rx="6" fill="#273346"/><rect x="558" y="336" width="302" height="12" rx="6" fill="#67d8ff"/>
+    <rect x="974" y="178" width="390" height="220" rx="8" fill="#121923" stroke="#273346"/>
+    <text x="1006" y="220" fill="#95a3b8" font-size="13" font-weight="700">BLOCKCHAIN OTEL</text>
+    <text x="1006" y="262" fill="#f6c85f" font-size="46" font-weight="800">LIVE</text>
+    <text x="1006" y="304" fill="#c8d2e1" font-size="17">Anchors, verifies, errors, timings</text>
+    <rect x="1006" y="336" width="310" height="12" rx="6" fill="#273346"/><rect x="1006" y="336" width="276" height="12" rx="6" fill="#f6c85f"/>
+  </g>
+  <rect x="78" y="446" width="620" height="318" rx="8" fill="#121923" stroke="#273346" filter="url(#shadow)"/>
+  <text x="110" y="490" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="700">PROMETHEUS TIMESERIES</text>
+  <text x="110" y="524" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="25" font-weight="800">API and auth server request health</text>
+  <g stroke="#ffffff" stroke-opacity="0.08">
+    <line x1="112" y1="590" x2="650" y2="590"/><line x1="112" y1="650" x2="650" y2="650"/><line x1="112" y1="710" x2="650" y2="710"/>
+  </g>
+  <polyline points="118,710 198,676 278,688 358,638 438,618 518,574 642,566" fill="none" stroke="#54f4b4" stroke-width="5"/>
+  <polyline points="118,730 198,720 278,702 358,684 438,656 518,626 642,604" fill="none" stroke="#67d8ff" stroke-width="5"/>
+  <rect x="738" y="446" width="626" height="318" rx="8" fill="#121923" stroke="#273346" filter="url(#shadow)"/>
+  <text x="770" y="490" fill="#95a3b8" font-family="Inter,Segoe UI,Arial" font-size="13" font-weight="700">GRAFANA DASHBOARDS</text>
+  <text x="770" y="524" fill="#ffffff" font-family="Inter,Segoe UI,Arial" font-size="25" font-weight="800">Provisioned client-ready monitoring</text>
+  <g font-family="Inter,Segoe UI,Arial">
+    <rect x="770" y="568" width="260" height="64" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <circle cx="802" cy="600" r="10" fill="#54f4b4"/><text x="824" y="606" fill="#ffffff" font-size="16" font-weight="800">ProofVault API Overview</text>
+    <rect x="770" y="652" width="260" height="64" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <circle cx="802" cy="684" r="10" fill="#67d8ff"/><text x="824" y="690" fill="#ffffff" font-size="16" font-weight="800">Auth Server Overview</text>
+    <rect x="1062" y="568" width="260" height="64" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <circle cx="1094" cy="600" r="10" fill="#f6c85f"/><text x="1116" y="606" fill="#ffffff" font-size="16" font-weight="800">Blockchain and OTEL</text>
+    <rect x="1062" y="652" width="260" height="64" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <circle cx="1094" cy="684" r="10" fill="#fb7185"/><text x="1116" y="690" fill="#ffffff" font-size="16" font-weight="800">Error and latency tracking</text>
+  </g>
+</svg>

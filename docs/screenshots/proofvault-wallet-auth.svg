@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">ProofVault wallet authentication</title>
+  <desc id="desc">A product snapshot showing wallet registration and authentication through a signed Sepolia wallet message.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#07090d"/><stop offset="1" stop-color="#101722"/></linearGradient>
+    <linearGradient id="ok" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#54f4b4"/><stop offset="1" stop-color="#d7ffe9"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#000" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="36" y="34" width="1368" height="832" rx="10" fill="#0b1018" stroke="#243044"/>
+  <g font-family="Inter,Segoe UI,Arial">
+    <text x="78" y="112" fill="#54f4b4" font-size="14" font-weight="800">WALLET AUTHENTICATION</text>
+    <text x="78" y="184" fill="#f7fbff" font-size="54" font-weight="900">Register and sign in</text>
+    <text x="78" y="248" fill="#f7fbff" font-size="54" font-weight="900">with a wallet address.</text>
+    <text x="80" y="294" fill="#c8d2e1" font-size="19">The user signs a one-time Sepolia challenge. ProofVault verifies ownership and issues an API bearer token.</text>
+  </g>
+  <g filter="url(#shadow)" font-family="Inter,Segoe UI,Arial">
+    <rect x="86" y="380" width="284" height="270" rx="8" fill="#121923" stroke="#273346"/>
+    <circle cx="132" cy="436" r="28" fill="#12382d"/><path d="M118 436h28M132 422v28" stroke="#54f4b4" stroke-width="4"/>
+    <text x="120" y="512" fill="#fff" font-size="23" font-weight="800">Connect wallet</text>
+    <text x="120" y="548" fill="#95a3b8" font-size="16">Browser wallet account access.</text>
+    <rect x="120" y="586" width="210" height="42" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="140" y="613" fill="#f6c85f" font-family="Consolas,monospace" font-size="15">0xf39F...2266</text>
+    <rect x="414" y="380" width="284" height="270" rx="8" fill="#121923" stroke="#273346"/>
+    <circle cx="460" cy="436" r="28" fill="#13303b"/><path d="M447 436c8-18 20-18 28 0" stroke="#67d8ff" stroke-width="4" fill="none"/>
+    <text x="448" y="512" fill="#fff" font-size="23" font-weight="800">Request nonce</text>
+    <text x="448" y="548" fill="#95a3b8" font-size="16">Server creates a one-time challenge.</text>
+    <rect x="448" y="586" width="210" height="42" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="468" y="613" fill="#67d8ff" font-family="Consolas,monospace" font-size="15">m6wZ...Vcn9</text>
+    <rect x="742" y="380" width="284" height="270" rx="8" fill="#121923" stroke="#273346"/>
+    <circle cx="788" cy="436" r="28" fill="#372e14"/><path d="M776 446l24-24M776 422h24v24" stroke="#f6c85f" stroke-width="4" fill="none"/>
+    <text x="776" y="512" fill="#fff" font-size="23" font-weight="800">Sign message</text>
+    <text x="776" y="548" fill="#95a3b8" font-size="16">No transaction or gas fee.</text>
+    <rect x="776" y="586" width="210" height="42" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="796" y="613" fill="#f6c85f" font-family="Consolas,monospace" font-size="15">0x8f7a...91dc</text>
+    <rect x="1070" y="380" width="284" height="270" rx="8" fill="#121923" stroke="#273346"/>
+    <circle cx="1116" cy="436" r="28" fill="#12382d"/><path d="M1103 436l9 10 19-24" stroke="#54f4b4" stroke-width="5" fill="none"/>
+    <text x="1104" y="512" fill="#fff" font-size="23" font-weight="800">API session</text>
+    <text x="1104" y="548" fill="#95a3b8" font-size="16">JWT bearer token returned.</text>
+    <rect x="1104" y="586" width="210" height="42" rx="8" fill="url(#ok)"/>
+    <text x="1142" y="613" fill="#05110c" font-size="15" font-weight="900">Authorized</text>
+  </g>
+  <g font-family="Inter,Segoe UI,Arial">
+    <rect x="86" y="720" width="390" height="82" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="120" y="752" fill="#95a3b8" font-size="13" font-weight="800">NETWORK</text>
+    <text x="120" y="784" fill="#fff" font-size="23" font-weight="800">Sepolia testnet</text>
+    <text x="350" y="784" fill="#54f4b4" font-size="18" font-weight="800">11155111</text>
+    <rect x="526" y="720" width="828" height="82" rx="8" fill="#0a0f17" stroke="#273346"/>
+    <text x="560" y="752" fill="#95a3b8" font-size="13" font-weight="800">SECURITY MODEL</text>
+    <text x="560" y="784" fill="#fff" font-size="23" font-weight="800">One-time nonce, wallet signature verification, JWT access token</text>
+  </g>
+</svg>
