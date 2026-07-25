@@ -48,6 +48,8 @@ public class SigningKeyConfig {
       try {
         RSAPrivateKey privateKey = parsePrivateKey(signing.privateKeyPem());
         RSAPublicKey publicKey = loadPublicKey(signing.publicKeyPem(), privateKey, hasPublicKey);
+        LOGGER.info("Loaded configured RSA signing key publicKeyConfigured={} keyId={}", hasPublicKey,
+          UUID.nameUUIDFromBytes(publicKey.getEncoded()));
         return new RSAKey.Builder(publicKey)
           .privateKey(privateKey)
           .keyID(UUID.nameUUIDFromBytes(publicKey.getEncoded()).toString())
@@ -74,6 +76,7 @@ public class SigningKeyConfig {
       KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
       keyPairGenerator.initialize(2048);
       KeyPair keyPair = keyPairGenerator.generateKeyPair();
+      LOGGER.info("Generated ephemeral RSA signing key keyType=RSA keySize=2048");
       return new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
         .privateKey((RSAPrivateKey) keyPair.getPrivate())
         .keyID(UUID.randomUUID().toString())

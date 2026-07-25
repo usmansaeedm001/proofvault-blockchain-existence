@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 @ConditionalOnProperty(prefix = "proofvault.blockchain", name = "mode", havingValue = "mock", matchIfMissing = true)
 public class MockBlockchainAnchorService implements IBlockchainAnchorService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MockBlockchainAnchorService.class);
   private final String networkName;
   private final Counter anchorCounter;
   private final Timer anchorTimer;
@@ -45,10 +48,12 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
       .tag("mode", "mock")
       .tag("network", networkName)
       .register(meterRegistry);
+    LOGGER.info("Mock blockchain service configured network={}", networkName);
   }
 
   @Override
   public BlockchainReceipt storeProof(String fileHash, String metadataHash) {
+    LOGGER.info("Mock proof anchoring requested network={} fileHash={} metadataHash={}", networkName, shortHash(fileHash), shortHash(metadataHash));
     return Observation.createNotStarted("proofvault.blockchain.store", observationRegistry)
       .lowCardinalityKeyValue("blockchain.mode", "mock")
       .lowCardinalityKeyValue("blockchain.network", networkName)
@@ -61,6 +66,7 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
           normalizedFileHash,
           new MockProof(transactionHash, normalizeHash(metadataHash), timestamp)
         );
+        LOGGER.info("Mock proof anchored network={} fileHash={} tx={}", networkName, shortHash(normalizedFileHash), shortHash(transactionHash));
         return new BlockchainReceipt(transactionHash, networkName, timestamp);
       }));
   }
@@ -69,6 +75,7 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
   public OnChainProofResponse verifyProof(String fileHash) {
     String normalizedFileHash = normalizeHash(fileHash);
     MockProof proof = proofs.get(normalizedFileHash);
+    LOGGER.info("Mock proof verification completed network={} fileHash={} exists={}", networkName, shortHash(normalizedFileHash), proof != null);
     return new OnChainProofResponse(
       proof != null,
       normalizedFileHash,
@@ -82,6 +89,7 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
 
   @Override
   public BlockchainStatusResponse status() {
+    LOGGER.debug("Mock blockchain status checked network={} proofCount={}", networkName, proofs.size());
     return new BlockchainStatusResponse(
       "mock",
       networkName,
@@ -96,7 +104,9 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
 
   @Override
   public BigInteger totalProofs() {
-    return BigInteger.valueOf(proofs.size());
+    BigInteger total = BigInteger.valueOf(proofs.size());
+    LOGGER.debug("Mock total proofs loaded network={} total={}", networkName, total);
+    return total;
   }
 
   private String deterministicTransactionHash(String fileHash, Instant timestamp) {
@@ -116,6 +126,17 @@ public class MockBlockchainAnchorService implements IBlockchainAnchorService {
   private String normalizeHash(String hash) {
     String normalized = hash == null ? "" : hash.toLowerCase();
     return normalized.startsWith("0x") ? normalized : "0x" + normalized;
+  }
+
+  private String shortHash(String hash) {
+    if (hash == null || hash.isBlank()) {
+      return "none";
+    }
+    String normalized = hash.startsWith("0x") ? hash.substring(2) : hash;
+    if (normalized.length() <= 12) {
+      return normalized;
+    }
+    return normalized.substring(0, 6) + "..." + normalized.substring(normalized.length() - 6);
   }
 
   private record MockProof(String transactionHash, String metadataHash, Instant timestamp) {}

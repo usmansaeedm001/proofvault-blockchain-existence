@@ -11,10 +11,10 @@ import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.security.core.userdetails.User;
@@ -29,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class WalletAuthenticationService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(WalletAuthenticationService.class);
 	private static final String SCOPE = "openid profile email proof:read proof:write";
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -58,7 +59,12 @@ public class WalletAuthenticationService {
 		ensureWalletAuthEnabled();
 		String walletAddress = normalize(request.walletAddress());
 		long chainId = request.chainId() == null ? properties.wallet().chainId() : request.chainId();
+		LOGGER.info("Wallet challenge requested wallet={} chainId={}", shortWallet(walletAddress), chainId);
+		LOGGER.debug("Wallet challenge chain validation wallet={} requestedChainId={} configuredChainId={}", shortWallet(walletAddress), chainId,
+			properties.wallet().chainId());
 		if (chainId != properties.wallet().chainId()) {
+			LOGGER.warn("Wallet challenge rejected wallet={} reason=chain_mismatch requestedChainId={} configuredChainId={}", shortWallet(walletAddress), chainId,
+				properties.wallet().chainId());
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wallet must be connected to the configured chain.");
 		}
 
@@ -73,6 +79,7 @@ public class WalletAuthenticationService {
 			timestamp(expiresAt));
 
 		String message = messageFactory.create(properties.wallet().domain(), properties.wallet().uri(), walletAddress, chainId, nonce, issuedAt, expiresAt);
+		LOGGER.info("Wallet challenge created wallet={} chainId={} expiresAt={}", shortWallet(walletAddress), chainId, expiresAt);
 		return new WalletNonceResponse(walletAddress, chainId, nonce, message, expiresAt);
 	}
 
@@ -81,26 +88,37 @@ public class WalletAuthenticationService {
 		ensureWalletAuthEnabled();
 		String walletAddress = normalize(request.walletAddress());
 		long chainId = request.chainId() == null ? properties.wallet().chainId() : request.chainId();
+		LOGGER.info("Wallet authentication requested wallet={} chainId={}", shortWallet(walletAddress), chainId);
+		LOGGER.debug("Wallet authentication chain validation wallet={} requestedChainId={} configuredChainId={}", shortWallet(walletAddress), chainId,
+			properties.wallet().chainId());
 		if (chainId != properties.wallet().chainId()) {
+			LOGGER.warn("Wallet authentication rejected wallet={} reason=chain_mismatch requestedChainId={} configuredChainId={}", shortWallet(walletAddress), chainId,
+				properties.wallet().chainId());
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wallet must be connected to the configured chain.");
 		}
 
 		WalletChallenge challenge = findActiveChallenge(walletAddress, request.nonce());
-		if (challenge.chainId() != chainId) {
+		if (!Objects.equals(challenge.chainId(),chainId)) {
+			LOGGER.warn("Wallet authentication rejected wallet={} reason=challenge_chain_mismatch requestedChainId={} challengeChainId={}", shortWallet(walletAddress),
+				chainId, challenge.chainId());
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet challenge was issued for a different chain.");
 		}
 		String message = messageFactory.create(challenge.domain(), properties.wallet().uri(), walletAddress, chainId, request.nonce(), challenge.issuedAt(), challenge.expiresAt());
 		if (!signatureVerifier.verify(message, request.signature(), walletAddress)) {
+			LOGGER.warn("Wallet authentication rejected wallet={} reason=signature_verification_failed chainId={}", shortWallet(walletAddress), chainId);
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet signature verification failed.");
 		}
 
 		jdbcOperations.update("UPDATE wallet_auth_challenges SET consumed_at = ? WHERE id = ?", timestamp(Instant.now(clock)), challenge.id());
 		createWalletUserIfMissing(walletAddress);
-		return issueToken(walletAddress);
+		WalletTokenResponse tokenResponse = issueToken(walletAddress);
+		LOGGER.info("Wallet authentication succeeded wallet={} chainId={} expiresInSeconds={}", shortWallet(walletAddress), chainId, tokenResponse.expiresIn());
+		return tokenResponse;
 	}
 
 	private WalletChallenge findActiveChallenge(String walletAddress, String nonce) {
 		String nonceHash = sha256Hex(nonce);
+		LOGGER.debug("Looking up active wallet challenge wallet={}", shortWallet(walletAddress));
 		return jdbcOperations.query("""
 			SELECT id, chain_id, domain, issued_at, expires_at
 			FROM wallet_auth_challenges
@@ -109,13 +127,17 @@ public class WalletAuthenticationService {
 			LIMIT 1
 			""", resultSet -> {
 			if (!resultSet.next()) {
+				LOGGER.warn("Wallet authentication rejected wallet={} reason=challenge_not_found_or_consumed", shortWallet(walletAddress));
 				throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet challenge was not found or was already used.");
 			}
 			WalletChallenge challenge = new WalletChallenge(resultSet.getString("id"), resultSet.getLong("chain_id"), resultSet.getString("domain"),
 				resultSet.getTimestamp("issued_at").toInstant(), resultSet.getTimestamp("expires_at").toInstant());
 			if (challenge.expiresAt().isBefore(Instant.now(clock))) {
+				LOGGER.warn("Wallet authentication rejected wallet={} reason=challenge_expired expiresAt={}", shortWallet(walletAddress), challenge.expiresAt());
 				throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wallet challenge has expired.");
 			}
+			LOGGER.debug("Active wallet challenge found wallet={} challengeId={} chainId={} expiresAt={}", shortWallet(walletAddress), challenge.id(), challenge.chainId(),
+				challenge.expiresAt());
 			return challenge;
 		}, walletAddress, nonceHash);
 	}
@@ -123,14 +145,17 @@ public class WalletAuthenticationService {
 	private void createWalletUserIfMissing(String walletAddress) {
 		String username = walletSubject(walletAddress);
 		if (userDetailsManager.userExists(username)) {
+			LOGGER.debug("Wallet user already exists wallet={}", shortWallet(walletAddress));
 			return;
 		}
 
 		String unusablePassword = passwordEncoder.encode(UUID.randomUUID().toString() + UUID.randomUUID());
 		userDetailsManager.createUser(User.withUsername(username).password(unusablePassword).roles("USER").build());
+		LOGGER.info("Wallet user created wallet={}", shortWallet(walletAddress));
 	}
 
 	private WalletTokenResponse issueToken(String walletAddress) {
+		LOGGER.debug("Issuing wallet access token wallet={}", shortWallet(walletAddress));
 		Instant issuedAt = Instant.now(clock);
 		Instant expiresAt = issuedAt.plus(properties.tokens().accessTokenTtl());
 		String subject = walletSubject(walletAddress);
@@ -156,6 +181,7 @@ public class WalletAuthenticationService {
 
 	private void ensureWalletAuthEnabled() {
 		if (!properties.wallet().enabled()) {
+			LOGGER.warn("Wallet authentication rejected reason=wallet_auth_disabled");
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet authentication is not enabled.");
 		}
 	}
@@ -189,6 +215,13 @@ public class WalletAuthenticationService {
 
 	private Timestamp timestamp(Instant instant) {
 		return Timestamp.from(instant);
+	}
+
+	private String shortWallet(String walletAddress) {
+		if (walletAddress == null || walletAddress.length() < 12) {
+			return "unknown";
+		}
+		return walletAddress.substring(0, 6) + "..." + walletAddress.substring(walletAddress.length() - 6);
 	}
 
 	private record WalletChallenge(String id, long chainId, String domain, Instant issuedAt, Instant expiresAt) {}

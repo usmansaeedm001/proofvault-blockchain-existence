@@ -30,6 +30,9 @@ Services:
 - External Anvil RPC: `http://172.25.179.4:8545`
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
+- Loki: `http://localhost:3100`
+- Tempo: `http://localhost:3200`
+- Promtail: `http://localhost:9080`
 - OTEL Collector internal metrics: `http://localhost:8888/metrics`
 - OTLP HTTP: `http://localhost:4318`
 - OTLP gRPC: `localhost:4317`

@@ -1,6 +1,8 @@
 package com.proofvault.api.config;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 @Configuration
 @ConditionalOnProperty(prefix = "proofvault.security", name = "authentication-enabled", havingValue = "true")
 public class JwtDecoderConfig {
+  private static final Logger LOGGER = LoggerFactory.getLogger(JwtDecoderConfig.class);
   private final ProofVaultProperties proofVaultProperties;
   private final OAuth2ResourceServerProperties resourceServerProperties;
 
@@ -31,6 +34,8 @@ public class JwtDecoderConfig {
   JwtDecoder jwtDecoder() {
     String issuerUri = resourceServerProperties.getJwt().getIssuerUri();
     String jwkSetUri = resourceServerProperties.getJwt().getJwkSetUri();
+    LOGGER.info("Configuring JWT decoder issuer={} jwkSetConfigured={} expectedAudience={}", issuerUri, hasText(jwkSetUri),
+      proofVaultProperties.security().audience());
 
     NimbusJwtDecoder decoder = hasText(jwkSetUri)
       ? NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build()

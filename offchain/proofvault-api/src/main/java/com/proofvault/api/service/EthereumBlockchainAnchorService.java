@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionEncoder;
@@ -45,6 +47,7 @@ import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 @Service
 @ConditionalOnProperty(prefix = "proofvault.blockchain", name = "mode", havingValue = "ethereum")
 public class EthereumBlockchainAnchorService implements IBlockchainAnchorService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(EthereumBlockchainAnchorService.class);
 	private static final String ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 	private final ProofVaultProperties.Blockchain properties;
 	private final Web3j web3j;
@@ -86,10 +89,14 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 			.tag("mode", "ethereum")
 			.tag("network", properties.networkName())
 			.register(meterRegistry);
+		LOGGER.info("Ethereum blockchain service configured network={} chainId={} rpcConfigured={} contractConfigured={} anchorAddressConfigured={} anchorKeyConfigured={}",
+			properties.networkName(), properties.chainId(), hasText(properties.rpcUrl()), hasText(properties.contractAddress()), hasText(properties.anchorAddress()),
+			hasText(properties.anchorPrivateKey()));
 	}
 
 	@Override
 	public BlockchainReceipt storeProof(String fileHash, String metadataHash) {
+		LOGGER.info("Ethereum proof anchoring requested network={} fileHash={} metadataHash={}", properties.networkName(), shortHash(fileHash), shortHash(metadataHash));
 		return Observation.createNotStarted("proofvault.blockchain.store", observationRegistry)
 			.lowCardinalityKeyValue("blockchain.mode", "ethereum")
 			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
@@ -104,15 +111,20 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 					String transactionHash =
 						transactionManager().sendTransaction(BigInteger.valueOf(properties.gasPriceWei()), BigInteger.valueOf(properties.gasLimit()),
 							properties.contractAddress(), encodedFunction, BigInteger.ZERO).getTransactionHash();
+					LOGGER.info("Ethereum proof transaction submitted network={} tx={} fileHash={}", properties.networkName(), shortHash(transactionHash), shortHash(fileHash));
 
 					TransactionReceipt receipt = receiptProcessor.waitForTransactionReceipt(transactionHash);
 					if (!receipt.isStatusOK()) {
+						LOGGER.warn("Ethereum proof transaction reverted network={} tx={} fileHash={}", properties.networkName(), shortHash(transactionHash), shortHash(fileHash));
 						throw new IllegalStateException("Blockchain transaction reverted: " + transactionHash);
 					}
 
+					LOGGER.info("Ethereum proof anchored network={} tx={} fileHash={} block={}", properties.networkName(), shortHash(transactionHash), shortHash(fileHash),
+						receipt.getBlockNumber());
 					return new BlockchainReceipt(transactionHash, properties.networkName(), Instant.now());
 				} catch (Exception exception) {
 					errorCounter.increment();
+					LOGGER.warn("Ethereum proof anchoring failed network={} fileHash={} reason={}", properties.networkName(), shortHash(fileHash), exception.getMessage());
 					throw new IllegalStateException("Unable to anchor proof on blockchain.", exception);
 				}
 			}));
@@ -120,6 +132,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 
 	@Override
 	public OnChainProofResponse verifyProof(String fileHash) {
+		LOGGER.debug("Ethereum proof verification requested network={} fileHash={}", properties.networkName(), shortHash(fileHash));
 		return Observation.createNotStarted("proofvault.blockchain.verify", observationRegistry)
 			.lowCardinalityKeyValue("blockchain.mode", "ethereum")
 			.lowCardinalityKeyValue("blockchain.network", properties.networkName())
@@ -137,10 +150,13 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 					BigInteger timestamp = (BigInteger) values.get(2).getValue();
 					String metadataHash = bytes32ToHex((byte[]) values.get(3).getValue());
 
+					LOGGER.info("Ethereum proof verification completed network={} fileHash={} exists={} submitter={}", properties.networkName(), shortHash(fileHash), exists,
+						shortAddress(submitter));
 					return new OnChainProofResponse(exists, normalizeHex(fileHash), submitter, exists ? Instant.ofEpochSecond(timestamp.longValue()) : null,
 						exists ? metadataHash : null, properties.networkName(), exists ? "Proof exists on-chain." : "Proof does not exist on-chain.");
 				} catch (Exception exception) {
 					errorCounter.increment();
+					LOGGER.warn("Ethereum proof verification failed network={} fileHash={} reason={}", properties.networkName(), shortHash(fileHash), exception.getMessage());
 					throw new IllegalStateException("Unable to verify proof on blockchain.", exception);
 				}
 			}));
@@ -149,6 +165,7 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 	@Override
 	public BlockchainStatusResponse status() {
 		if (!hasText(properties.rpcUrl())) {
+			LOGGER.warn("Ethereum status unavailable network={} reason=missing_rpc_url", properties.networkName());
 			return new BlockchainStatusResponse("ethereum", properties.networkName(), false, BigInteger.valueOf(properties.chainId()), null,
 				properties.contractAddress(), properties.anchorAddress(), "BLOCKCHAIN_RPC_URL is required when BLOCKCHAIN_MODE=ethereum.");
 		}
@@ -161,10 +178,13 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 			String message = rpcConnected
 				? configurationMessage == null ? "Ethereum JSON-RPC connection is active." : "Ethereum JSON-RPC connection is active. " + configurationMessage
 				: "Ethereum JSON-RPC connection returned an error.";
+			LOGGER.debug("Ethereum status checked network={} rpcConnected={} chainId={} latestBlock={} configured={}", properties.networkName(), rpcConnected,
+				chainId.getChainId(), blockNumber.getBlockNumber(), configurationMessage == null);
 			return new BlockchainStatusResponse("ethereum", properties.networkName(), rpcConnected && configurationMessage == null, chainId.getChainId(),
 				blockNumber.getBlockNumber(), properties.contractAddress(), properties.anchorAddress(), message);
 		} catch (IOException exception) {
 			errorCounter.increment();
+			LOGGER.warn("Ethereum status check failed network={} reason={}", properties.networkName(), exception.getMessage());
 			return new BlockchainStatusResponse("ethereum", properties.networkName(), false, BigInteger.valueOf(properties.chainId()), null,
 				properties.contractAddress(), properties.anchorAddress(), exception.getMessage());
 		}
@@ -176,9 +196,12 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 			validateReadConfiguration();
 			Function function = new Function("totalProofs", Collections.emptyList(), List.of(new TypeReference<Uint256>() {}));
 			List<Type> values = call(function);
-			return (BigInteger) values.get(0).getValue();
+			BigInteger total = (BigInteger) values.get(0).getValue();
+			LOGGER.debug("Ethereum total proofs loaded network={} total={}", properties.networkName(), total);
+			return total;
 		} catch (Exception exception) {
 			errorCounter.increment();
+			LOGGER.warn("Ethereum total proofs lookup failed network={} reason={}", properties.networkName(), exception.getMessage());
 			throw new IllegalStateException("Unable to read on-chain proof total.", exception);
 		}
 	}
@@ -252,5 +275,23 @@ public class EthereumBlockchainAnchorService implements IBlockchainAnchorService
 
 	private boolean hasText(String value) {
 		return value != null && !value.isBlank();
+	}
+
+	private String shortHash(String hash) {
+		if (hash == null || hash.isBlank()) {
+			return "none";
+		}
+		String normalized = hash.startsWith("0x") ? hash.substring(2) : hash;
+		if (normalized.length() <= 12) {
+			return normalized;
+		}
+		return normalized.substring(0, 6) + "..." + normalized.substring(normalized.length() - 6);
+	}
+
+	private String shortAddress(String address) {
+		if (address == null || address.length() < 12) {
+			return "unknown";
+		}
+		return address.substring(0, 6) + "..." + address.substring(address.length() - 6);
 	}
 }

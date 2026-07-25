@@ -1,0 +1,18 @@
+apiVersion: 1
+
+datasources:
+  - name: ProofVault Tempo
+    type: tempo
+    uid: proofvault-tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: true
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: proofvault-loki
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        filterByTraceID: true
+        filterBySpanID: false
+      serviceMap:
+        datasourceUid: proofvault-prometheus

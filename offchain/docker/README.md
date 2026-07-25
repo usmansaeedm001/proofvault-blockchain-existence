@@ -36,6 +36,9 @@ Services:
 | External Anvil RPC | `http://172.25.179.4:8545` |
 | Prometheus | `http://localhost:9090` |
 | Grafana | `http://localhost:3000` |
+| Loki | `http://localhost:3100` |
+| Tempo | `http://localhost:3200` |
+| Promtail | `http://localhost:9080` |
 | OTEL Collector internal metrics | `http://localhost:8888/metrics` |
 | OTLP HTTP | `http://localhost:4318` |
 | OTLP gRPC | `localhost:4317` |
@@ -52,6 +55,35 @@ Grafana automatically provisions these dashboards from `offchain/docker/grafana/
 - ProofVault API Overview
 - ProofVault Auth Server Overview
 - ProofVault Blockchain & OTEL
+- ProofVault Logs & Traces
+
+Grafana automatically provisions these datasources:
+
+- ProofVault Prometheus: metrics
+- ProofVault Loki: logs
+- ProofVault Tempo: traces
+
+Log queries in Grafana Explore:
+
+```logql
+{service="proofvault-api"}
+{service="proofvault-authserver"}
+{service="otel-collector"}
+```
+
+Trace queries in Grafana Explore:
+
+1. Select `ProofVault Tempo`.
+2. Search by service, trace ID, or time range.
+3. Use `ProofVault Loki` to jump from logs to traces when log lines include `traceId`.
+
+Telemetry flow:
+
+```text
+Spring Boot metrics -> Prometheus -> Grafana
+Container stdout logs -> Promtail -> Loki -> Grafana
+Spring Boot traces -> OTEL Collector -> Tempo -> Grafana
+```
 
 The default offchain stack uses `BLOCKCHAIN_MODE=ethereum` with the local Anvil profile. Start Anvil separately and set the deployed proxy address before anchoring proofs.
 
