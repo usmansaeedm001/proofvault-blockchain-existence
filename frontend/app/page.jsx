@@ -4,33 +4,34 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   ArrowDownToLine,
-  BarChart3,
+  BadgeCheck,
   Blocks,
   CheckCircle2,
-  CircuitBoard,
+  ClipboardCheck,
   Copy,
   Database,
+  ExternalLink,
   FileCheck2,
+  FileSearch,
   FileUp,
   Fingerprint,
   Gauge,
-  KeyRound,
-  Link2,
+  Layers3,
   Loader2,
   LockKeyhole,
   LogOut,
-  Radar,
+  PauseCircle,
   RefreshCw,
   Search,
   ShieldCheck,
+  ShieldEllipsis,
   Sparkles,
-  TrendingUp,
+  UploadCloud,
   WalletCards,
-  XCircle
+  XCircle,
+  Zap
 } from "lucide-react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -42,98 +43,92 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-import { apiRequest, beginLogin, clearSession, decodeJwt, getStoredToken, config } from "../lib/proofvault";
+import {
+  apiRequest,
+  beginWalletLogin,
+  clearSession,
+  config,
+  decodeJwt,
+  getStoredToken
+} from "../lib/proofvault";
 
-const demoStatus = {
-  mode: "mock",
-  network: "local-foundry",
-  connected: true,
-  chainId: 31337,
-  latestBlockNumber: 924115,
-  contractAddress: "0x9f4...A71c",
-  anchorAddress: "0xf39...2266",
-  message: "Mock chain online"
+const emptyStatus = {
+  mode: "awaiting backend",
+  network: config.walletChainName,
+  connected: false,
+  chainId: config.walletChainId,
+  latestBlockNumber: null,
+  contractAddress: "",
+  anchorAddress: "",
+  message: "Authenticate to load backend blockchain status."
 };
 
-const demoInsights = {
-  status: demoStatus,
-  onChainTotalProofs: 12840,
-  offChainTotalProofs: 12840,
-  offChainUserProofs: 84
+const emptyInsights = {
+  status: emptyStatus,
+  onChainTotalProofs: 0,
+  offChainTotalProofs: 0,
+  offChainUserProofs: 0
 };
 
-const demoMetrics = {
-  anchors: 820,
-  verifications: 2410,
-  errors: 2,
-  anchorDurationCount: 820,
-  anchorDurationTotalSeconds: 101.6,
-  verifyDurationCount: 2410,
-  verifyDurationTotalSeconds: 86.76
+const emptyMetrics = {
+  anchors: 0,
+  verifications: 0,
+  errors: 0,
+  anchorDurationCount: 0,
+  anchorDurationTotalSeconds: 0,
+  verifyDurationCount: 0,
+  verifyDurationTotalSeconds: 0
 };
 
-const demoProofs = [
-  {
-    id: "pv_9Z4F2A",
-    fileName: "client-contract-v7.pdf",
-    fileHash: "f4d2b94db19c3187b8267568778f004fbd0c873872d1e2660efddbb8b4f634aa",
-    fileSize: 1430900,
-    transactionHash: "0x91ac4427ef938f51039c0bdf1e31cc2de61af18ccab62e70d8df10fdcc54c17a",
-    network: "local-foundry",
-    blockchainTimestamp: new Date(Date.now() - 1000 * 60 * 23).toISOString(),
-    createdAt: new Date(Date.now() - 1000 * 60 * 23).toISOString()
-  },
-  {
-    id: "pv_6K81BD",
-    fileName: "brand-system-export.zip",
-    fileHash: "bc32f0370d5f1b1120217ebf35ce7b612cb52632375a1a6f61bd2406116d8e85",
-    fileSize: 9084421,
-    transactionHash: "0xb3a2462e23e7360b26f7d791718f7f04cf08fd48eb63240179cd91982215e643",
-    network: "local-foundry",
-    blockchainTimestamp: new Date(Date.now() - 1000 * 60 * 60 * 9).toISOString(),
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 9).toISOString()
-  },
-  {
-    id: "pv_2QJ9C1",
-    fileName: "source-snapshot.tar.gz",
-    fileHash: "77a93a4a8e4714542885835084791f8590d58be2f409264aa65668ad8b26d58c",
-    fileSize: 3145728,
-    transactionHash: "0x59e918d0b5064b7de598853ff005efc04c1af636ae8e72fc393ccb933e2e08d8",
-    network: "local-foundry",
-    blockchainTimestamp: new Date(Date.now() - 1000 * 60 * 60 * 29).toISOString(),
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 29).toISOString()
-  }
+const contractControls = [
+  { icon: ShieldEllipsis, label: "Admin governance", value: "DEFAULT_ADMIN_ROLE" },
+  { icon: UploadCloud, label: "Anchoring relayer", value: "ANCHOR_ROLE" },
+  { icon: PauseCircle, label: "Emergency pause", value: "PAUSER_ROLE" },
+  { icon: Layers3, label: "UUPS upgrades", value: "UPGRADER_ROLE" },
+  { icon: ClipboardCheck, label: "Duplicate guard", value: "ProofAlreadyExists" },
+  { icon: Blocks, label: "Batch anchoring", value: "storeProofs up to 100" }
 ];
 
-const flowData = [
-  { name: "00:00", proofs: 12, verifies: 28 },
-  { name: "04:00", proofs: 19, verifies: 34 },
-  { name: "08:00", proofs: 31, verifies: 62 },
-  { name: "12:00", proofs: 46, verifies: 90 },
-  { name: "16:00", proofs: 68, verifies: 121 },
-  { name: "20:00", proofs: 82, verifies: 154 }
+const apiCapabilities = [
+  "Wallet registration and login",
+  "JWT session from wallet challenge",
+  "File hash anchoring",
+  "Public hash verification",
+  "Certificate export",
+  "Subscription usage",
+  "Blockchain status",
+  "OTEL metrics"
 ];
 
-const COLORS = ["#54f4b4", "#f6c85f", "#67d8ff", "#fb7185"];
+const chartColors = ["#38d996", "#4bb3fd", "#f6c85f", "#f45d7a"];
 
 export default function HomePage() {
   const fileInputRef = useRef(null);
   const [token, setToken] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [status, setStatus] = useState(demoStatus);
-  const [insights, setInsights] = useState(demoInsights);
-  const [metrics, setMetrics] = useState(demoMetrics);
-  const [proofs, setProofs] = useState(demoProofs);
-  const [verifyHash, setVerifyHash] = useState(demoProofs[0].fileHash);
+  const [status, setStatus] = useState(emptyStatus);
+  const [insights, setInsights] = useState(emptyInsights);
+  const [metrics, setMetrics] = useState(emptyMetrics);
+  const [subscription, setSubscription] = useState(null);
+  const [proofs, setProofs] = useState([]);
+  const [verifyHash, setVerifyHash] = useState("");
   const [verification, setVerification] = useState(null);
-  const [notice, setNotice] = useState("Demo telemetry is showing until you sign in and start the backend stack.");
+  const [onChainHash, setOnChainHash] = useState("");
+  const [onChainProof, setOnChainProof] = useState(null);
+  const [walletAccount, setWalletAccount] = useState(null);
+  const [notice, setNotice] = useState("Connect MetaMask and sign the wallet challenge to load live ProofVault data.");
   const [busy, setBusy] = useState(false);
+  const [walletBusy, setWalletBusy] = useState(false);
 
   const signedIn = Boolean(token?.accessToken);
   const claims = useMemo(() => decodeJwt(token?.accessToken), [token]);
+  const walletAddress = token?.walletAddress || claims?.wallet_address || walletAccount;
   const anchorAvg = average(metrics.anchorDurationTotalSeconds, metrics.anchorDurationCount);
   const verifyAvg = average(metrics.verifyDurationTotalSeconds, metrics.verifyDurationCount);
-  const proofDelta = Number(insights.offChainTotalProofs || 0) - Number(insights.onChainTotalProofs || 0);
+  const sync = syncPercent(insights);
+  const subscriptionUsage = subscription
+    ? Math.min(100, (Number(subscription.usage || 0) / Math.max(1, Number(subscription.monthlyProofLimit || 1))) * 100)
+    : 0;
 
   useEffect(() => {
     const stored = getStoredToken();
@@ -141,32 +136,66 @@ export default function HomePage() {
       setToken(stored);
       refreshData(stored);
     }
+    detectWallet();
   }, []);
+
+  async function detectWallet() {
+    if (typeof window === "undefined" || !window.ethereum) return;
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      setWalletAccount(accounts?.[0] || null);
+    } catch {
+      setWalletAccount(null);
+    }
+  }
 
   async function refreshData(existingToken = token) {
     if (!existingToken?.accessToken) {
-      setNotice("Sign in to stream live blockchain insights from the ProofVault API.");
+      setNotice("Wallet connection is not the same as API authentication. Sign the wallet challenge to load backend data.");
       return;
     }
+
     setBusy(true);
     try {
-      const [me, chainStatus, chainInsights, otel, recentProofs] = await Promise.all([
+      const [me, chainStatus, chainInsights, otel, currentSubscription, recentProofs] = await Promise.all([
         apiRequest("/api/me"),
         apiRequest("/api/blockchain/status"),
         apiRequest("/api/blockchain/insights"),
         apiRequest("/api/observability/blockchain"),
+        apiRequest("/api/subscription"),
         apiRequest("/api/proofs")
       ]);
+
       setProfile(me);
       setStatus(chainStatus);
       setInsights(chainInsights);
       setMetrics(otel);
-      setProofs(recentProofs.length ? recentProofs : []);
-      setNotice("Live blockchain data loaded from ProofVault API.");
-    } catch (err) {
-      setNotice(`${err.message} Showing demo analytics until the API is reachable.`);
+      setSubscription(currentSubscription);
+      setProofs(Array.isArray(recentProofs) ? recentProofs : []);
+      if (!verifyHash && recentProofs?.[0]?.fileHash) {
+        setVerifyHash(recentProofs[0].fileHash);
+        setOnChainHash(recentProofs[0].fileHash);
+      }
+      setNotice("Live backend, subscription, blockchain, and OTEL data loaded.");
+    } catch (error) {
+      setNotice(error.message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function signInWithWallet() {
+    setWalletBusy(true);
+    try {
+      const walletToken = await beginWalletLogin();
+      setToken(walletToken);
+      setWalletAccount(walletToken.walletAddress);
+      setNotice(`Wallet ${shortHash(walletToken.walletAddress)} authenticated. Loading backend data.`);
+      await refreshData(walletToken);
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setWalletBusy(false);
     }
   }
 
@@ -174,7 +203,8 @@ export default function HomePage() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!signedIn) {
-      setNotice("Sign in before anchoring a new proof.");
+      setNotice("Authenticate before anchoring a file.");
+      event.target.value = "";
       return;
     }
 
@@ -182,13 +212,14 @@ export default function HomePage() {
     body.append("file", file);
     setBusy(true);
     try {
-      const created = await apiRequest("/api/proofs/upload", { method: "POST", body });
-      setProofs((current) => [created, ...current.filter((proof) => proof.id !== created.id)]);
-      setVerifyHash(created.fileHash);
-      setNotice(`${file.name} was hashed and anchored successfully.`);
+      const proof = await apiRequest("/api/proofs/upload", { method: "POST", body });
+      setProofs((current) => [proof, ...current.filter((item) => item.id !== proof.id)]);
+      setVerifyHash(proof.fileHash);
+      setOnChainHash(proof.fileHash);
+      setNotice(`${file.name} was hashed, recorded, and anchored.`);
       await refreshData();
-    } catch (err) {
-      setNotice(err.message);
+    } catch (error) {
+      setNotice(error.message);
     } finally {
       setBusy(false);
       event.target.value = "";
@@ -204,16 +235,34 @@ export default function HomePage() {
         body: JSON.stringify({ fileHash: verifyHash.trim() })
       });
       setVerification(result);
-      setNotice(result.message || (result.exists ? "Proof verified." : "Proof not found."));
-    } catch (err) {
-      setNotice(err.message);
+      setNotice(result.message || "Verification completed.");
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function lookupOnChainProof() {
+    if (!onChainHash.trim()) return;
+    if (!signedIn) {
+      setNotice("Authenticate to query the on-chain proof endpoint.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await apiRequest(`/api/blockchain/proofs/${normalizeHash(onChainHash)}`);
+      setOnChainProof(result);
+      setNotice(result.message || "On-chain lookup completed.");
+    } catch (error) {
+      setNotice(error.message);
     } finally {
       setBusy(false);
     }
   }
 
   async function downloadCertificate(proofId) {
-    if (!proofId || !signedIn) return;
+    if (!signedIn || !proofId) return;
     try {
       const response = await apiRequest(`/api/proofs/${proofId}/certificate`);
       const blob = await response.blob();
@@ -223,8 +272,8 @@ export default function HomePage() {
       link.download = `proofvault-certificate-${proofId}.txt`;
       link.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
-      setNotice(err.message);
+    } catch (error) {
+      setNotice(error.message);
     }
   }
 
@@ -232,214 +281,203 @@ export default function HomePage() {
     clearSession();
     setToken(null);
     setProfile(null);
-    setNotice("Signed out. Demo telemetry is visible without a live session.");
+    setSubscription(null);
+    setProofs([]);
+    setStatus(emptyStatus);
+    setInsights(emptyInsights);
+    setMetrics(emptyMetrics);
+    setVerification(null);
+    setOnChainProof(null);
+    setNotice("Signed out. Connect again to load live backend data.");
   }
 
-  const allocationData = [
-    { name: "Anchored", value: Number(insights.onChainTotalProofs || 0) },
-    { name: "User Vault", value: Number(insights.offChainUserProofs || 0) },
-    { name: "Verifications", value: Number(metrics.verifications || 0) },
+  const proofMix = [
+    { name: "On-chain", value: Number(insights.onChainTotalProofs || 0) },
+    { name: "Indexed", value: Number(insights.offChainTotalProofs || 0) },
+    { name: "Your vault", value: Number(insights.offChainUserProofs || 0) },
     { name: "Errors", value: Number(metrics.errors || 0) }
   ];
 
+  const operationMetrics = [
+    { name: "anchors", value: Number(metrics.anchors || 0) },
+    { name: "verifies", value: Number(metrics.verifications || 0) },
+    { name: "errors", value: Number(metrics.errors || 0) }
+  ];
+
   return (
-    <main className="shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <CircuitBoard size={16} />
-            ProofVault evidence dashboard
+    <main className="app-shell">
+      <header className="topbar">
+        <div className="brand-mark">
+          <ShieldCheck size={22} />
+          <div>
+            <strong>ProofVault</strong>
+            <span>Proof-of-existence console</span>
           </div>
-          <h1>Proof of existence for audit-ready digital work.</h1>
-          <p>
-            Anchor file fingerprints, verify originality, and monitor chain health through a
-            clean professional dashboard.
-          </p>
-          <div className="hero-actions">
-            {signedIn ? (
-              <>
-                <button className="primary-action" type="button" onClick={() => fileInputRef.current?.click()}>
-                  <FileUp size={18} />
-                  Anchor File
-                </button>
-                <button className="ghost-action" type="button" onClick={refreshData}>
-                  {busy ? <Loader2 className="spin" size={18} /> : <RefreshCw size={18} />}
-                  Refresh
-                </button>
-              </>
-            ) : (
-              <button className="primary-action" type="button" onClick={beginLogin}>
-                <KeyRound size={18} />
-                Sign In
+        </div>
+        <div className="topbar-actions">
+          <StatusBadge active={Boolean(walletAccount)} label={walletAccount ? `Wallet ${shortHash(walletAccount)}` : "Wallet not connected"} />
+          <StatusBadge active={signedIn} label={signedIn ? "API authenticated" : "API locked"} />
+          {signedIn ? (
+            <>
+              <button className="icon-button" type="button" onClick={() => refreshData()} aria-label="Refresh dashboard">
+                {busy ? <Loader2 className="spin" size={18} /> : <RefreshCw size={18} />}
               </button>
-            )}
+              <button className="icon-button" type="button" onClick={signOut} aria-label="Sign out">
+                <LogOut size={18} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="primary-button" type="button" onClick={signInWithWallet}>
+                {walletBusy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}
+                Connect Wallet
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      <section className="command-center">
+        <div className="command-copy">
+          <span className="eyebrow-line">
+            <Sparkles size={16} />
+            Backend and blockchain aligned
+          </span>
+          <h1>Anchor file fingerprints and verify proof state from one live console.</h1>
+          <p>
+            Connected to {config.apiBaseUrl} and {config.authBaseUrl}. Wallet auth targets {config.walletChainName} chain ID {config.walletChainId}.
+          </p>
+          <div className="action-row">
+            <button className="primary-button" type="button" onClick={() => fileInputRef.current?.click()} disabled={!signedIn || busy}>
+              <FileUp size={18} />
+              Anchor File
+            </button>
+            <button className="secondary-button" type="button" onClick={() => refreshData()} disabled={!signedIn || busy}>
+              {busy ? <Loader2 className="spin" size={18} /> : <RefreshCw size={18} />}
+              Refresh Data
+            </button>
             <input ref={fileInputRef} className="hidden-input" type="file" onChange={uploadProof} />
           </div>
         </div>
-        <div className="chain-terminal">
-          <div className="terminal-header">
-            <span>Vault Network</span>
-            <span className={status.connected ? "pill positive" : "pill negative"}>
-              {status.connected ? "Connected" : "Disconnected"}
-            </span>
+
+        <div className="network-card">
+          <div className="card-header">
+            <span>Network State</span>
+            <StatusBadge active={Boolean(status.connected)} label={status.connected ? "Connected" : "Not connected"} />
           </div>
-          <div className="terminal-grid">
-            <Metric label="Mode" value={status.mode || "mock"} />
-            <Metric label="Network" value={status.network || "local-foundry"} />
-            <Metric label="Chain ID" value={String(status.chainId || "31337")} />
-            <Metric label="Latest Block" value={compactNumber(status.latestBlockNumber)} />
+          <div className="metric-grid">
+            <Metric label="Mode" value={status.mode || "n/a"} />
+            <Metric label="Network" value={status.network || "n/a"} />
+            <Metric label="Chain ID" value={String(status.chainId || config.walletChainId)} />
+            <Metric label="Latest Block" value={status.latestBlockNumber ? compactNumber(status.latestBlockNumber) : "pending"} />
           </div>
-          <div className="hash-strip">
-            <span>Contract</span>
-            <strong>{shortHash(status.contractAddress || "not deployed")}</strong>
-          </div>
-          <div className="hash-strip">
-            <span>Anchor</span>
-            <strong>{shortHash(status.anchorAddress || "mock relayer")}</strong>
-          </div>
+          <AddressLine label="Contract" value={status.contractAddress || "not configured"} />
+          <AddressLine label="Anchor" value={status.anchorAddress || "not configured"} />
+          <p className="card-message">{status.message || notice}</p>
         </div>
       </section>
 
-      <section className="status-line">
-        <div>
-          <ShieldCheck size={18} />
-          <span>{notice}</span>
-        </div>
-        <div className="session-chip">
-          <WalletCards size={17} />
-          {signedIn ? profile?.email || claims?.sub || "Signed in" : "Demo mode"}
-          {signedIn && (
-            <button type="button" onClick={signOut} aria-label="Sign out">
-              <LogOut size={15} />
-            </button>
-          )}
-        </div>
+      <section className="notice-strip">
+        <ShieldCheck size={18} />
+        <span>{notice}</span>
       </section>
 
       <section className="kpi-grid">
         <Kpi icon={Blocks} label="On-chain proofs" value={compactNumber(insights.onChainTotalProofs)} tone="mint" />
-        <Kpi icon={Database} label="Indexed proofs" value={compactNumber(insights.offChainTotalProofs)} tone="gold" />
-        <Kpi icon={Fingerprint} label="Your vault" value={compactNumber(insights.offChainUserProofs)} tone="sky" />
+        <Kpi icon={Database} label="Indexed proofs" value={compactNumber(insights.offChainTotalProofs)} tone="sky" />
+        <Kpi icon={Fingerprint} label="Your vault" value={compactNumber(insights.offChainUserProofs)} tone="gold" />
         <Kpi icon={Gauge} label="Anchor avg" value={`${anchorAvg.toFixed(3)}s`} tone="rose" />
       </section>
 
-      <section className="dashboard-grid">
-        <article className="panel wide">
-          <div className="panel-heading">
+      <section className="main-grid">
+        <article className="panel upload-panel">
+          <div className="panel-title">
             <div>
-              <span>Proof Activity</span>
-              <h2>Anchor and verification velocity</h2>
+              <span>Proof Creation</span>
+              <h2>File hash anchoring</h2>
             </div>
-            <BarChart3 size={22} />
+            <UploadCloud size={22} />
           </div>
-          <div className="chart-frame">
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={flowData}>
-                <defs>
-                  <linearGradient id="proofFlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#54f4b4" stopOpacity={0.7} />
-                    <stop offset="95%" stopColor="#54f4b4" stopOpacity={0.04} />
-                  </linearGradient>
-                  <linearGradient id="verifyFlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#67d8ff" stopOpacity={0.6} />
-                    <stop offset="95%" stopColor="#67d8ff" stopOpacity={0.04} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#95a3b8", fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#95a3b8", fontSize: 12 }} />
-                <Tooltip content={<ChartTooltip />} />
-                <Area type="monotone" dataKey="proofs" stroke="#54f4b4" fill="url(#proofFlow)" strokeWidth={2} />
-                <Area type="monotone" dataKey="verifies" stroke="#67d8ff" fill="url(#verifyFlow)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="drop-zone" onClick={() => signedIn && fileInputRef.current?.click()}>
+            <FileUp size={34} />
+            <strong>{signedIn ? "Select a file to anchor" : "Authenticate to anchor files"}</strong>
+            <span>Backend stores metadata and anchors only cryptographic fingerprints.</span>
           </div>
-        </article>
-
-        <article className="panel">
-          <div className="panel-heading">
+          <div className="usage-box">
             <div>
-              <span>Proof Mix</span>
-              <h2>Proof distribution</h2>
+              <span>Subscription</span>
+              <strong>{subscription?.tier || "Not loaded"}</strong>
             </div>
-            <Radar size={22} />
-          </div>
-          <div className="donut-wrap">
-            <ResponsiveContainer width="100%" height={230}>
-              <PieChart>
-                <Pie data={allocationData} dataKey="value" innerRadius={62} outerRadius={92} paddingAngle={4}>
-                  {allocationData.map((entry, index) => (
-                    <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="donut-center">
-              <strong>{compactNumber(metrics.anchors)}</strong>
-              <span>anchors</span>
-            </div>
-          </div>
-        </article>
-
-        <article className="panel">
-          <div className="panel-heading">
             <div>
-              <span>Synchronization</span>
-              <h2>Chain and index parity</h2>
+              <span>Usage</span>
+              <strong>
+                {subscription ? `${subscription.usage}/${formatLimit(subscription.monthlyProofLimit)}` : "pending"}
+              </strong>
             </div>
-            <TrendingUp size={22} />
           </div>
-          <div className="settlement-stack">
-            <ProgressRow label="On-chain sync" value={syncPercent(insights)} tone="mint" />
-            <ProgressRow label="Verification speed" value={Math.max(8, Math.min(100, 100 - verifyAvg * 18))} tone="sky" />
-            <ProgressRow label="Error resistance" value={Math.max(0, 100 - Number(metrics.errors || 0) * 8)} tone="gold" />
-          </div>
-          <div className="delta-card">
-            <span>Index delta</span>
-            <strong>{proofDelta === 0 ? "Balanced" : `${proofDelta} pending`}</strong>
-          </div>
+          <Progress label="Monthly proof usage" value={subscriptionUsage} tone="gold" />
         </article>
 
         <article className="panel verify-panel">
-          <div className="panel-heading">
+          <div className="panel-title">
             <div>
               <span>Public Verify</span>
-              <h2>Check any SHA-256 fingerprint</h2>
+              <h2>Database-backed hash check</h2>
             </div>
-            <Search size={22} />
+            <FileSearch size={22} />
           </div>
           <textarea
             value={verifyHash}
             onChange={(event) => setVerifyHash(event.target.value)}
+            placeholder="Paste a SHA-256 file hash"
             spellCheck={false}
-            aria-label="File hash to verify"
           />
-          <button className="primary-action full" type="button" onClick={verifyProof}>
-            {busy ? <Loader2 className="spin" size={18} /> : <ShieldCheck size={18} />}
+          <button className="primary-button full" type="button" onClick={verifyProof} disabled={busy || !verifyHash.trim()}>
+            {busy ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
             Verify Hash
           </button>
           {verification && (
-            <div className={verification.exists ? "verify-result success" : "verify-result fail"}>
-              {verification.exists ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-              <div>
-                <strong>{verification.exists ? "Proof exists" : "No proof found"}</strong>
-                <span>{verification.message || shortHash(verification.transactionHash)}</span>
-              </div>
-            </div>
+            <ResultCard success={verification.exists} title={verification.exists ? "Proof exists" : "No proof found"}>
+              {verification.message}
+            </ResultCard>
           )}
         </article>
 
-        <article className="panel wide proof-table">
-          <div className="panel-heading">
+        <article className="panel verify-panel">
+          <div className="panel-title">
+            <div>
+              <span>On-chain Lookup</span>
+              <h2>Smart contract proof state</h2>
+            </div>
+            <Blocks size={22} />
+          </div>
+          <textarea
+            value={onChainHash}
+            onChange={(event) => setOnChainHash(event.target.value)}
+            placeholder="Paste a SHA-256 file hash"
+            spellCheck={false}
+          />
+          <button className="secondary-button full" type="button" onClick={lookupOnChainProof} disabled={busy || !onChainHash.trim()}>
+            {busy ? <Loader2 className="spin" size={18} /> : <ExternalLink size={18} />}
+            Query Chain
+          </button>
+          {onChainProof && (
+            <ResultCard success={onChainProof.exists} title={onChainProof.exists ? "On-chain proof found" : "No on-chain proof"}>
+              {onChainProof.metadataHash || onChainProof.message}
+            </ResultCard>
+          )}
+        </article>
+
+        <article className="panel wide">
+          <div className="panel-title">
             <div>
               <span>Vault History</span>
-              <h2>Recent anchored assets</h2>
+              <h2>Recent proofs and certificates</h2>
             </div>
             <FileCheck2 size={22} />
           </div>
           <div className="proof-list">
-            {proofs.map((proof) => (
+            {proofs.length ? proofs.map((proof) => (
               <div className="proof-row" key={proof.id}>
                 <div className="proof-main">
                   <div className="file-icon">
@@ -452,14 +490,17 @@ export default function HomePage() {
                 </div>
                 <div className="proof-meta">
                   <span>{formatBytes(proof.fileSize)}</span>
-                  <span>{proof.network || "local-foundry"}</span>
+                  <span>{proof.network || status.network || "chain"}</span>
                   <span>{formatDate(proof.blockchainTimestamp)}</span>
                 </div>
                 <div className="row-actions">
                   <button type="button" onClick={() => copyText(proof.fileHash)} aria-label="Copy hash">
                     <Copy size={16} />
                   </button>
-                  <button type="button" onClick={() => setVerifyHash(proof.fileHash)} aria-label="Verify this hash">
+                  <button type="button" onClick={() => {
+                    setVerifyHash(proof.fileHash);
+                    setOnChainHash(proof.fileHash);
+                  }} aria-label="Use hash">
                     <Search size={16} />
                   </button>
                   <button type="button" onClick={() => downloadCertificate(proof.id)} aria-label="Download certificate">
@@ -467,62 +508,121 @@ export default function HomePage() {
                   </button>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="empty-state">
+                <FileCheck2 size={34} />
+                <strong>No proofs loaded</strong>
+                <span>Authenticated proof history will appear here.</span>
+              </div>
+            )}
           </div>
         </article>
 
-        <article className="panel telemetry-panel">
-          <div className="panel-heading">
+        <article className="panel">
+          <div className="panel-title">
+            <div>
+              <span>Proof Mix</span>
+              <h2>Chain and index parity</h2>
+            </div>
+            <Layers3 size={22} />
+          </div>
+          <div className="donut-wrap">
+            <ResponsiveContainer width="100%" height={230}>
+              <PieChart>
+                <Pie data={proofMix} dataKey="value" innerRadius={60} outerRadius={88} paddingAngle={4}>
+                  {proofMix.map((item, index) => (
+                    <Cell key={item.name} fill={chartColors[index % chartColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<ChartTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="donut-center">
+              <strong>{Math.round(sync)}%</strong>
+              <span>sync</span>
+            </div>
+          </div>
+          <Progress label="On-chain sync" value={sync} tone="mint" />
+        </article>
+
+        <article className="panel">
+          <div className="panel-title">
             <div>
               <span>OTEL Pulse</span>
-              <h2>Blockchain operation health</h2>
+              <h2>Blockchain operation metrics</h2>
             </div>
             <Activity size={22} />
           </div>
-          <ResponsiveContainer width="100%" height={210}>
-            <BarChart data={[
-              { name: "anchors", value: Number(metrics.anchors || 0) },
-              { name: "verifies", value: Number(metrics.verifications || 0) },
-              { name: "errors", value: Number(metrics.errors || 0) }
-            ]}>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={operationMetrics}>
               <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#95a3b8", fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#95a3b8", fontSize: 12 }} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#7c879a", fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#7c879a", fontSize: 12 }} />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                <Cell fill="#54f4b4" />
-                <Cell fill="#67d8ff" />
-                <Cell fill="#fb7185" />
+                {operationMetrics.map((item, index) => (
+                  <Cell key={item.name} fill={chartColors[index % chartColors.length]} />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <div className="mini-metrics">
+          <div className="mini-grid">
             <Metric label="Verify avg" value={`${verifyAvg.toFixed(3)}s`} />
             <Metric label="Anchor events" value={compactNumber(metrics.anchorDurationCount)} />
           </div>
         </article>
-      </section>
 
-      <section className="security-strip">
-        <div>
-          <LockKeyhole size={18} />
-          Raw files never leave the browser for storage. The API hashes uploads, stores metadata, and anchors only fingerprints.
-        </div>
-        <div>
-          <Link2 size={18} />
-          {config.apiBaseUrl} connected to {config.authBaseUrl}
-        </div>
+        <article className="panel">
+          <div className="panel-title">
+            <div>
+              <span>Security Model</span>
+              <h2>Smart contract controls</h2>
+            </div>
+            <LockKeyhole size={22} />
+          </div>
+          <div className="control-list">
+            {contractControls.map(({ icon: Icon, label, value }) => (
+              <div className="control-row" key={label}>
+                <Icon size={18} />
+                <div>
+                  <strong>{label}</strong>
+                  <span>{value}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel wide">
+          <div className="panel-title">
+            <div>
+              <span>Backend Surface</span>
+              <h2>Available product capabilities</h2>
+            </div>
+            <Zap size={22} />
+          </div>
+          <div className="capability-grid">
+            {apiCapabilities.map((capability) => (
+              <div className="capability" key={capability}>
+                <BadgeCheck size={18} />
+                <span>{capability}</span>
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
     </main>
   );
 }
 
+function StatusBadge({ active, label }) {
+  return <span className={active ? "status-badge active" : "status-badge"}>{label}</span>;
+}
+
 function Kpi({ icon: Icon, label, value, tone }) {
   return (
     <article className={`kpi ${tone}`}>
-      <div>
-        <Icon size={21} />
-      </div>
+      <Icon size={22} />
       <span>{label}</span>
       <strong>{value ?? "0"}</strong>
     </article>
@@ -538,8 +638,17 @@ function Metric({ label, value }) {
   );
 }
 
-function ProgressRow({ label, value, tone }) {
-  const normalized = Math.round(Math.max(0, Math.min(100, value || 0)));
+function AddressLine({ label, value }) {
+  return (
+    <div className="address-line">
+      <span>{label}</span>
+      <strong>{shortHash(value)}</strong>
+    </div>
+  );
+}
+
+function Progress({ label, value, tone }) {
+  const normalized = Math.round(Math.max(0, Math.min(100, Number(value || 0))));
   return (
     <div className="progress-row">
       <div>
@@ -548,6 +657,18 @@ function ProgressRow({ label, value, tone }) {
       </div>
       <div className={`track ${tone}`}>
         <span style={{ width: `${normalized}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function ResultCard({ success, title, children }) {
+  return (
+    <div className={success ? "result-card success" : "result-card fail"}>
+      {success ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+      <div>
+        <strong>{title}</strong>
+        <span>{children || "No additional data returned."}</span>
       </div>
     </div>
   );
@@ -569,15 +690,14 @@ function ChartTooltip({ active, payload, label }) {
 
 function average(total, count) {
   const safeCount = Number(count || 0);
-  if (!safeCount) return 0;
-  return Number(total || 0) / safeCount;
+  return safeCount ? Number(total || 0) / safeCount : 0;
 }
 
 function syncPercent(current) {
-  const off = Number(current.offChainTotalProofs || 0);
-  const on = Number(current.onChainTotalProofs || 0);
-  if (!off) return 100;
-  return Math.min(100, (on / off) * 100);
+  const indexed = Number(current.offChainTotalProofs || 0);
+  const onChain = Number(current.onChainTotalProofs || 0);
+  if (!indexed) return 0;
+  return Math.min(100, (onChain / indexed) * 100);
 }
 
 function compactNumber(value) {
@@ -587,8 +707,13 @@ function compactNumber(value) {
 
 function shortHash(value) {
   if (!value) return "n/a";
-  if (value.length <= 14) return value;
+  if (value.length <= 18) return value;
   return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
+
+function normalizeHash(value) {
+  const trimmed = value.trim();
+  return trimmed.startsWith("0x") ? trimmed : `0x${trimmed}`;
 }
 
 function formatBytes(value) {
@@ -607,6 +732,11 @@ function formatDate(value) {
     hour: "2-digit",
     minute: "2-digit"
   }).format(new Date(value));
+}
+
+function formatLimit(value) {
+  const number = Number(value || 0);
+  return number > 1000000 ? "unlimited" : String(number);
 }
 
 async function copyText(value) {

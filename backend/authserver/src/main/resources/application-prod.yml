@@ -10,10 +10,18 @@ spring:
 
 proofvault:
   auth:
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS}
     bootstrap:
       enabled: false
     signing:
       require-configured-key: true
+      private-key-pem: ${AUTH_SIGNING_PRIVATE_KEY_PEM}
+      public-key-pem: ${AUTH_SIGNING_PUBLIC_KEY_PEM:}
+    wallet:
+      enabled: ${AUTH_WALLET_ENABLED:true}
+      chain-id: ${AUTH_WALLET_CHAIN_ID}
+      domain: ${AUTH_WALLET_DOMAIN}
+      uri: ${AUTH_WALLET_URI}
 
 management:
   endpoint:

@@ -6,7 +6,9 @@ Spring Boot API for ProofVault with OAuth2 resource-server security, user-scoped
 
 | Profile | Purpose | Auth | Database |
 | --- | --- | --- | --- |
-| `local` | Fast local development | disabled by default | H2 in-memory |
+| `local` | Fast local development | OAuth2 JWT required by default | H2 in-memory |
+| `anvil` | Local Anvil chain | OAuth2 JWT required | MySQL |
+| `sepolia` | Sepolia testnet | OAuth2 JWT required | MySQL |
 | `docker` | Local container stack | disabled by default | MySQL container |
 | `dev` | Shared developer environment | OAuth2 JWT required | MySQL |
 | `staging` | Pre-production | OAuth2 JWT required | MySQL |
@@ -35,7 +37,7 @@ Services:
 - API: `http://localhost:8080`
 - Auth server: `http://localhost:9000`
 - MySQL: `localhost:3306`
-- Anvil: `http://localhost:8545`
+- External Anvil RPC for `anvil` and `local`: `http://172.25.179.4:8545`
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000`
 - OTEL Collector internal metrics: `http://localhost:8888/metrics`
@@ -111,25 +113,43 @@ Blockchain operations add spans and metrics:
 - timer `proofvault.blockchain.anchor.duration`
 - timer `proofvault.blockchain.verify.duration`
 
-## Blockchain Modes
+## Blockchain Profiles
 
-Mock mode is the default:
+Use `anvil` for a local chain:
 
 ```bash
-BLOCKCHAIN_MODE=mock
+SPRING_PROFILES_ACTIVE=anvil
+BLOCKCHAIN_MODE=ethereum
+BLOCKCHAIN_RPC_URL=http://172.25.179.4:8545
+BLOCKCHAIN_CHAIN_ID=31337
 ```
 
-Ethereum-compatible mode calls the UUPS ProofVault proxy contract:
+Use `sepolia` for testnet:
 
 ```bash
+SPRING_PROFILES_ACTIVE=sepolia
 BLOCKCHAIN_MODE=ethereum
-BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
-BLOCKCHAIN_CHAIN_ID=31337
+BLOCKCHAIN_RPC_URL=https://rpc.sepolia.org
+BLOCKCHAIN_CHAIN_ID=11155111
+EXPLORER_BASE_URL=https://sepolia.etherscan.io/tx/
+```
+
+When using real chain mode, provide the deployed UUPS proxy address and an anchor private key:
+
+```bash
 PROOFVAULT_CONTRACT_ADDRESS=0xYourProxyAddress
 PROOFVAULT_ANCHOR_ADDRESS=0xYourAnchorAddress
 PROOFVAULT_ANCHOR_PRIVATE_KEY=0xYourAnchorPrivateKey
 BLOCKCHAIN_GAS_PRICE_WEI=1000000000
 BLOCKCHAIN_GAS_LIMIT=500000
+```
+
+The API can start before these values are set. `/api/blockchain/status` will report the JSON-RPC connection plus any missing contract/key configuration. Upload anchoring and on-chain proof lookup require `PROOFVAULT_CONTRACT_ADDRESS`; anchoring also requires `PROOFVAULT_ANCHOR_PRIVATE_KEY`.
+
+You can still force mock mode when needed:
+
+```bash
+BLOCKCHAIN_MODE=mock
 ```
 
 Blockchain insight APIs:
@@ -146,7 +166,7 @@ Import:
 - `postman/ProofVault.postman_collection.json`
 - `postman/ProofVault.postman_environment.json`
 
-For `local`, protected API calls work without a bearer token because authentication is disabled by default. For `dev`, `staging`, and `prod`, set `accessToken` or use the OAuth2 token request in the collection.
+For `anvil`, `sepolia`, `dev`, `staging`, and `prod`, set `accessToken` from the auth server wallet flow or use the OAuth2 token request in the collection.
 
 ## API Surface
 

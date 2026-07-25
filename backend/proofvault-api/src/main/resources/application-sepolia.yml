@@ -1,0 +1,33 @@
+spring:
+  config:
+    activate:
+      on-profile: sepolia
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/proofvault?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:proofvault}
+    password: ${DB_PASSWORD:proofvault_local_password}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:9000}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
+
+proofvault:
+  blockchain:
+    mode: ${BLOCKCHAIN_MODE:ethereum}
+    network-name: ${BLOCKCHAIN_NETWORK:sepolia}
+    explorer-base-url: ${EXPLORER_BASE_URL:https://sepolia.etherscan.io/tx/}
+    rpc-url: ${BLOCKCHAIN_RPC_URL:https://rpc.sepolia.org}
+    chain-id: ${BLOCKCHAIN_CHAIN_ID:11155111}
+    contract-address: ${PROOFVAULT_CONTRACT_ADDRESS:}
+    anchor-private-key: ${PROOFVAULT_ANCHOR_PRIVATE_KEY:${PRIVATE_KEY:}}
+    anchor-address: ${PROOFVAULT_ANCHOR_ADDRESS:}
+  security:
+    authentication-enabled: ${AUTHENTICATION_ENABLED:true}
+
+management:
+  tracing:
+    enabled: ${OTEL_TRACING_ENABLED:false}
+

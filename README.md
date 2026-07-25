@@ -10,7 +10,7 @@ ProofVault helps creators, freelancers, legal professionals, designers, develope
 
 Core user flow:
 
-1. User signs in through OAuth2/OpenID Connect.
+1. User connects a browser wallet and signs a no-gas authentication challenge.
 2. User uploads a file through the web app.
 3. The API generates a SHA-256 hash.
 4. Only the hash and metadata are stored; the raw file is not stored.
@@ -25,8 +25,8 @@ Core user flow:
 - Public hash verification
 - User-scoped proof history
 - Certificate download
-- OAuth2/OpenID Connect authentication
-- Browser-safe PKCE login flow
+- Wallet-first registration and authentication through signed wallet messages
+- JWT-secured backend APIs
 - Professional blockchain insights dashboard
 - Blockchain health and proof analytics
 - OpenTelemetry tracing
@@ -37,22 +37,26 @@ Core user flow:
 
 ## Project Snaps
 
-| Professional dashboard | Proof workflow | Observability |
-| --- | --- | --- |
-| ![ProofVault dashboard](./docs/screenshots/proofvault-dashboard.svg) | ![ProofVault proof workflow](./docs/screenshots/proofvault-proof-flow.svg) | ![ProofVault observability](./docs/screenshots/proofvault-observability.svg) |
+| Professional dashboard | Wallet authentication |
+| --- | --- |
+| ![ProofVault dashboard](./docs/screenshots/proofvault-dashboard.svg) | ![ProofVault wallet authentication](./docs/screenshots/proofvault-wallet-auth.svg) |
+| Proof workflow | Certificate export |
+| ![ProofVault proof workflow](./docs/screenshots/proofvault-proof-flow.svg) | ![ProofVault certificate export](./docs/screenshots/proofvault-certificate.svg) |
+| Observability |  |
+| ![ProofVault observability](./docs/screenshots/proofvault-observability.svg) |  |
 
 ## Architecture
 
 ```text
 frontend/
-  Next.js dashboard and OAuth PKCE browser client
+  Next.js wallet-first dashboard
 
 backend/
   proofvault-api/
     Spring Boot resource API for proofs, certificates, blockchain, and insights
 
   authserver/
-    Spring Authorization Server for OAuth2 and OpenID Connect
+    Spring Authorization Server for JWT issuance and wallet authentication
 
   docker/
     MySQL init scripts, OTEL Collector, Prometheus, Grafana dashboards
@@ -123,7 +127,7 @@ Available services:
 | ProofVault API | `http://localhost:8080` |
 | Auth Server | `http://localhost:9000` |
 | MySQL | `localhost:3306` |
-| Anvil | `http://localhost:8545` |
+| External Anvil RPC | `http://172.25.179.4:8545` |
 | Prometheus | `http://localhost:9090` |
 | Grafana | `http://localhost:3000` |
 | OTEL Collector metrics | `http://localhost:8888/metrics` |
@@ -137,7 +141,9 @@ password: proofvault_admin
 
 ## Demo Login
 
-The local auth server bootstraps demo credentials for client review:
+The frontend login is wallet-first. Connect MetaMask and sign the challenge; no blockchain transaction or gas fee is required.
+
+The local auth server can still bootstrap credentials for API/Postman review:
 
 ```text
 Email: admin@proofvault.local
@@ -178,19 +184,30 @@ Backend services include:
 - `proofvault-api`
 - `proofvault-authserver`
 - MySQL
-- Anvil
 - OpenTelemetry Collector
 - Prometheus
 - Grafana
 
 More backend details are available in [`backend/README.md`](./backend/README.md).
 
+## Profiles
+
+| Profile | Chain | Chain ID | Frontend env |
+| --- | --- | --- | --- |
+| `anvil` | Local Anvil | `31337` | `frontend/.env.anvil.example` |
+| `sepolia` | Sepolia testnet | `11155111` | `frontend/.env.sepolia.example` |
+| `prod` | Production network | env driven | `frontend/.env.production.example` |
+
+For Anvil, copy the Anvil env examples to your real env files and run the backend with `SPRING_PROFILES_ACTIVE=anvil`.
+
+For Sepolia, copy the Sepolia env examples and run the backend with `SPRING_PROFILES_ACTIVE=sepolia`.
+
 ## Frontend Development
 
 ```bash
 cd frontend
 npm install
-npm run dev -- -p 5173
+npm run dev
 ```
 
 Frontend environment variables:
@@ -201,9 +218,12 @@ NEXT_PUBLIC_AUTH_BASE_URL=http://localhost:9000
 NEXT_PUBLIC_AUTH_CLIENT_ID=proofvault-spa
 NEXT_PUBLIC_AUTH_REDIRECT_URI=http://localhost:5173/oauth2/callback
 NEXT_PUBLIC_AUTH_SCOPES=openid profile email proof:read proof:write
+NEXT_PUBLIC_WALLET_CHAIN_ID=31337
+NEXT_PUBLIC_WALLET_CHAIN_NAME=Local Anvil
+NEXT_PUBLIC_WALLET_RPC_URL=http://172.25.179.4:8545
 ```
 
-The dashboard includes demo fallback data so the UI remains presentable even before the backend is running. Once signed in and connected, it loads live proof, blockchain, and observability data from the API.
+Once the wallet is authenticated, the dashboard loads live proof, blockchain, subscription, and observability data from the API.
 
 ## API Overview
 
@@ -232,16 +252,19 @@ The project includes a dedicated Spring Authorization Server microservice.
 
 Supported auth capabilities:
 
-- OAuth2 authorization code flow with PKCE
+- Wallet challenge authentication
+- OAuth2 authorization code flow with PKCE for internal/future extension
 - OpenID Connect discovery
 - JWT access tokens
 - JWKS endpoint
 - JDBC-backed registered clients
 - JDBC-backed users
+- Wallet-based sign-in using a nonce challenge and browser wallet signature
 - Local bootstrap user and clients
 - Profile-specific configuration for local, docker, dev, staging, and prod
 
 The frontend uses the public `proofvault-spa` client. The API validates JWTs issued by the auth server and checks the configured audience `proofvault-api`.
+For wallet login, the frontend connects to the browser wallet, requests a profile-specific nonce challenge from the auth server, signs it with the wallet, and receives the bearer token used by the API.
 
 ## Blockchain Layer
 

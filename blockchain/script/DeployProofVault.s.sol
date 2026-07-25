@@ -7,10 +7,12 @@ import { ProofVault } from "../src/ProofVault.sol";
 
 contract DeployProofVault is Script {
   function run() external returns (address proxy, address implementation) {
-    address admin = vm.envAddress("PROOFVAULT_ADMIN");
-    address anchor = vm.envAddress("PROOFVAULT_ANCHOR");
+    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    address deployer = vm.addr(deployerPrivateKey);
+    address admin = vm.envOr("PROOFVAULT_ADMIN", deployer);
+    address anchor = vm.envOr("PROOFVAULT_ANCHOR", deployer);
 
-    vm.startBroadcast();
+    vm.startBroadcast(deployerPrivateKey);
     ProofVault proofVaultImplementation = new ProofVault();
     bytes memory initData = abi.encodeCall(ProofVault.initialize, (admin, anchor));
     ERC1967Proxy proofVaultProxy = new ERC1967Proxy(address(proofVaultImplementation), initData);

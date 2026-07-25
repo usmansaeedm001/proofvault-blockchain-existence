@@ -15,6 +15,15 @@ spring:
           jwk-set-uri: ${OAUTH2_JWK_SET_URI:}
 
 proofvault:
+  blockchain:
+    mode: ethereum
+    network-name: ${BLOCKCHAIN_NETWORK}
+    explorer-base-url: ${EXPLORER_BASE_URL}
+    rpc-url: ${BLOCKCHAIN_RPC_URL}
+    chain-id: ${BLOCKCHAIN_CHAIN_ID}
+    contract-address: ${PROOFVAULT_CONTRACT_ADDRESS}
+    anchor-private-key: ${PROOFVAULT_ANCHOR_PRIVATE_KEY}
+    anchor-address: ${PROOFVAULT_ANCHOR_ADDRESS:}
   security:
     authentication-enabled: true
 

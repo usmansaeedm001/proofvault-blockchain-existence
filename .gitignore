@@ -5,8 +5,8 @@ target/
 .env.local
 out/
 cache/
-lib/
 *.log
+*.err
 .DS_Store
 /.idea/
 /.codex/
@@ -15,8 +15,6 @@ lib/
 /blockchain/lib/
 /blockchain/cache/
 /blockchain/build/
-/docs/
-
 # Next.js build output
 .next/
 
@@ -38,3 +36,5 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Foundry dependencies/build artifacts

@@ -46,10 +46,11 @@ public class ProofService {
 
 	@Transactional(readOnly = true)
 	public VerificationResponse verify(String fileHash) {
-		return proofRepository.findFirstByFileHashOrderByCreatedAtAsc(fileHash.toLowerCase())
+		String normalizedHash = normalizeHash(fileHash);
+		return proofRepository.findFirstByFileHashOrderByCreatedAtAsc(normalizedHash)
 			.map(proof -> new VerificationResponse(true, proof.getFileHash(), proof.getTransactionHash(), proof.getNetwork(), proof.getBlockchainTimestamp(),
 				"This hash has a timestamped ProofVault certificate."))
-			.orElseGet(() -> new VerificationResponse(false, fileHash.toLowerCase(), null, null, null, "No proof exists for this hash."));
+			.orElseGet(() -> new VerificationResponse(false, normalizedHash, null, null, null, "No proof exists for this hash."));
 	}
 
 	@Transactional(readOnly = true)
@@ -84,5 +85,10 @@ public class ProofService {
 		owner.setUsageCount(owner.getUsageCount() + 1);
 
 		return ProofResponse.from(proofRepository.save(proof));
+	}
+
+	private String normalizeHash(String fileHash) {
+		String normalized = fileHash == null ? "" : fileHash.trim().toLowerCase();
+		return normalized.startsWith("0x") ? normalized.substring(2) : normalized;
 	}
 }

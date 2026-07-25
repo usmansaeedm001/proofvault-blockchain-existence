@@ -62,11 +62,22 @@ forge test --profile ci
 ```bash
 set PROOFVAULT_ADMIN=0xYourAdminMultisig
 set PROOFVAULT_ANCHOR=0xYourBackendAnchorWallet
+set PRIVATE_KEY=0xYourDeployerPrivateKey
 
 forge script script/DeployProofVault.s.sol:DeployProofVault ^
   --rpc-url <RPC_URL> ^
   --broadcast ^
   --verify
+```
+
+For local Anvil, `PROOFVAULT_ADMIN` and `PROOFVAULT_ANCHOR` are optional. If they are not set, the script uses the deploying wallet for both roles:
+
+```bash
+export PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+forge script script/DeployProofVault.s.sol:DeployProofVault \
+  --rpc-url http://127.0.0.1:8545 \
+  --broadcast
 ```
 
 ## Audit Notes

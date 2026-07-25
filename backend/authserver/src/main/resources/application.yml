@@ -57,7 +57,7 @@ proofvault:
   auth:
     issuer: ${AUTH_ISSUER:http://localhost:9000}
     audience: ${AUTH_AUDIENCE:proofvault-api}
-    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:5173}
     bootstrap:
       enabled: ${AUTH_BOOTSTRAP_ENABLED:true}
       user-email: ${AUTH_BOOTSTRAP_USER_EMAIL:admin@proofvault.local}
@@ -75,6 +75,12 @@ proofvault:
       access-token-ttl: ${AUTH_ACCESS_TOKEN_TTL:15m}
       refresh-token-ttl: ${AUTH_REFRESH_TOKEN_TTL:8h}
       authorization-code-ttl: ${AUTH_AUTHORIZATION_CODE_TTL:5m}
+    wallet:
+      enabled: ${AUTH_WALLET_ENABLED:true}
+      chain-id: ${AUTH_WALLET_CHAIN_ID:31337}
+      domain: ${AUTH_WALLET_DOMAIN:localhost:5173}
+      uri: ${AUTH_WALLET_URI:http://localhost:5173}
+      nonce-ttl: ${AUTH_WALLET_NONCE_TTL:5m}
 
 info:
   app:

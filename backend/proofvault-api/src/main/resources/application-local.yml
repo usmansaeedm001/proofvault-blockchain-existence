@@ -11,10 +11,23 @@ spring:
     console:
       enabled: true
       path: /h2-console
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:9000}
+          jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://localhost:9000/oauth2/jwks}
 
 proofvault:
+  blockchain:
+    mode: ${BLOCKCHAIN_MODE:ethereum}
+    network-name: ${BLOCKCHAIN_NETWORK:local-anvil}
+    explorer-base-url: ${EXPLORER_BASE_URL:http://172.25.179.4:8545/tx/}
+    rpc-url: ${BLOCKCHAIN_RPC_URL:http://172.25.179.4:8545}
+    chain-id: ${BLOCKCHAIN_CHAIN_ID:31337}
+    anchor-private-key: ${PROOFVAULT_ANCHOR_PRIVATE_KEY:${PRIVATE_KEY:}}
   security:
-    authentication-enabled: ${AUTHENTICATION_ENABLED:false}
+    authentication-enabled: ${AUTHENTICATION_ENABLED:true}
 
 management:
   tracing:

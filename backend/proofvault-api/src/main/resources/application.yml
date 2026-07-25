@@ -11,7 +11,7 @@ spring:
   application:
     name: proofvault-api
   profiles:
-    default: local
+    default: dev
   lifecycle:
     timeout-per-shutdown-phase: 30s
   servlet:

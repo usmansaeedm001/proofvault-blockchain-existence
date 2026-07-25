@@ -5,6 +5,6 @@ import jakarta.validation.constraints.Pattern;
 
 public record VerificationRequest(
   @NotBlank
-  @Pattern(regexp = "^[a-fA-F0-9]{64}$", message = "fileHash must be a 64-character SHA-256 hash")
+  @Pattern(regexp = "^(0x)?[a-fA-F0-9]{64}$", message = "fileHash must be a 32-byte hex SHA-256 hash")
   String fileHash
 ) {}
