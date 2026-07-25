@@ -9,13 +9,13 @@ services:
         NEXT_PUBLIC_AUTH_CLIENT_ID: proofvault-spa
         NEXT_PUBLIC_AUTH_REDIRECT_URI: http://localhost:5173/oauth2/callback
         NEXT_PUBLIC_AUTH_SCOPES: openid profile email proof:read proof:write
-        NEXT_PUBLIC_WALLET_CHAIN_ID: 31337
-        NEXT_PUBLIC_WALLET_CHAIN_NAME: Local Anvil
-        NEXT_PUBLIC_WALLET_RPC_URL: http://172.25.179.4:8545
-        NEXT_PUBLIC_WALLET_EXPLORER_URL: ""
-        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME: Anvil Ether
+        NEXT_PUBLIC_WALLET_CHAIN_ID: 11155111
+        NEXT_PUBLIC_WALLET_CHAIN_NAME: Sepolia
+        NEXT_PUBLIC_WALLET_RPC_URL: "${SEPOLIA_PUBLIC_RPC_URL:-https://rpc.sepolia.org}"
+        NEXT_PUBLIC_WALLET_EXPLORER_URL: https://sepolia.etherscan.io
+        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME: Sepolia Ether
         NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_SYMBOL: ETH
-    image: proofvault-frontend:local
+    image: proofvault-frontend:sepolia
     container_name: proofvault-frontend
     restart: unless-stopped
     ports:
@@ -32,29 +32,28 @@ services:
     build:
       context: ./backend/proofvault-api
       dockerfile: Dockerfile
-    image: proofvault-api:local
+    image: proofvault-api:sepolia
     container_name: proofvault-api
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: anvil
+      SPRING_PROFILES_ACTIVE: sepolia
       SERVER_PORT: 8080
       DB_URL: jdbc:mysql://proofvault-mysql:3306/proofvault?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USERNAME: proofvault
-      DB_PASSWORD: proofvault_local_password
+      DB_PASSWORD: "${DB_PASSWORD:-proofvault_local_password}"
       AUTHENTICATION_ENABLED: "true"
       OAUTH2_ISSUER_URI: http://localhost:9000
       OAUTH2_JWK_SET_URI: http://proofvault-authserver:9000/oauth2/jwks
       OAUTH2_AUDIENCE: proofvault-api
       CORS_ALLOWED_ORIGINS: http://localhost:5173
       BLOCKCHAIN_MODE: ethereum
-      BLOCKCHAIN_NETWORK: local-anvil
-      BLOCKCHAIN_RPC_URL: http://172.25.179.4:8545
-      BLOCKCHAIN_CHAIN_ID: "31337"
-      BLOCKCHAIN_GAS_PRICE_WEI: "1000000000"
-      BLOCKCHAIN_GAS_LIMIT: "500000"
+      BLOCKCHAIN_NETWORK: sepolia
+      BLOCKCHAIN_RPC_URL: "${SEPOLIA_RPC_URL:-https://rpc.sepolia.org}"
+      BLOCKCHAIN_CHAIN_ID: "11155111"
+      EXPLORER_BASE_URL: https://sepolia.etherscan.io/tx/
       PROOFVAULT_CONTRACT_ADDRESS: "${PROOFVAULT_CONTRACT_ADDRESS:-}"
-      PROOFVAULT_ANCHOR_ADDRESS: "${PROOFVAULT_ANCHOR_ADDRESS:-0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266}"
-      PROOFVAULT_ANCHOR_PRIVATE_KEY: "${PROOFVAULT_ANCHOR_PRIVATE_KEY:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}"
+      PROOFVAULT_ANCHOR_ADDRESS: "${PROOFVAULT_ANCHOR_ADDRESS:-}"
+      PROOFVAULT_ANCHOR_PRIVATE_KEY: "${PROOFVAULT_ANCHOR_PRIVATE_KEY:-}"
       OTEL_TRACING_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_TRACES_SAMPLER_PROBABILITY: "1.0"
@@ -76,16 +75,17 @@ services:
     build:
       context: ./backend/authserver
       dockerfile: Dockerfile
-    image: proofvault-authserver:local
+    image: proofvault-authserver:sepolia
     container_name: proofvault-authserver
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: anvil
+      SPRING_PROFILES_ACTIVE: sepolia
       SERVER_PORT: 9000
       DB_URL: jdbc:mysql://proofvault-mysql:3306/proofvault_auth?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USERNAME: proofvault
-      DB_PASSWORD: proofvault_local_password
+      DB_PASSWORD: "${DB_PASSWORD:-proofvault_local_password}"
       AUTH_ISSUER: http://localhost:9000
+      AUTH_AUDIENCE: proofvault-api
       AUTH_ALLOWED_ORIGINS: http://localhost:5173
       AUTH_FRONTEND_REDIRECT_URI: http://localhost:5173/oauth2/callback
       AUTH_FRONTEND_LOGOUT_REDIRECT_URI: http://localhost:5173
@@ -96,7 +96,7 @@ services:
       AUTH_FRONTEND_PUBLIC_CLIENT_ID: proofvault-spa
       AUTH_SIGNING_REQUIRE_CONFIGURED_KEY: "false"
       AUTH_WALLET_ENABLED: "true"
-      AUTH_WALLET_CHAIN_ID: "31337"
+      AUTH_WALLET_CHAIN_ID: "11155111"
       AUTH_WALLET_DOMAIN: localhost:5173
       AUTH_WALLET_URI: http://localhost:5173
       OTEL_TRACING_ENABLED: "true"
@@ -121,13 +121,13 @@ services:
     environment:
       MYSQL_DATABASE: proofvault
       MYSQL_USER: proofvault
-      MYSQL_PASSWORD: proofvault_local_password
-      MYSQL_ROOT_PASSWORD: proofvault_root_local_password
+      MYSQL_PASSWORD: "${DB_PASSWORD:-proofvault_local_password}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-proofvault_root_local_password}"
     ports:
       - "3306:3306"
     volumes:
       - ./backend/docker/mysql/init:/docker-entrypoint-initdb.d:ro
-      - proofvault-mysql-data:/var/lib/mysql
+      - proofvault-sepolia-mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
@@ -161,7 +161,7 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./backend/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - proofvault-prometheus-data:/prometheus
+      - proofvault-sepolia-prometheus-data:/prometheus
     ports:
       - "9090:9090"
     depends_on:
@@ -176,12 +176,12 @@ services:
     restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: proofvault_admin
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-proofvault_admin}"
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./backend/docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./backend/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - proofvault-grafana-data:/var/lib/grafana
+      - proofvault-sepolia-grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -194,6 +194,6 @@ networks:
     driver: bridge
 
 volumes:
-  proofvault-mysql-data:
-  proofvault-prometheus-data:
-  proofvault-grafana-data:
+  proofvault-sepolia-mysql-data:
+  proofvault-sepolia-prometheus-data:
+  proofvault-sepolia-grafana-data:

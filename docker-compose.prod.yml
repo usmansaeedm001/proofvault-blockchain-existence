@@ -1,0 +1,196 @@
+services:
+  proofvault-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: "${NEXT_PUBLIC_API_BASE_URL:?Set NEXT_PUBLIC_API_BASE_URL}"
+        NEXT_PUBLIC_AUTH_BASE_URL: "${NEXT_PUBLIC_AUTH_BASE_URL:?Set NEXT_PUBLIC_AUTH_BASE_URL}"
+        NEXT_PUBLIC_AUTH_CLIENT_ID: "${NEXT_PUBLIC_AUTH_CLIENT_ID:-proofvault-spa}"
+        NEXT_PUBLIC_AUTH_REDIRECT_URI: "${NEXT_PUBLIC_AUTH_REDIRECT_URI:?Set NEXT_PUBLIC_AUTH_REDIRECT_URI}"
+        NEXT_PUBLIC_AUTH_SCOPES: "${NEXT_PUBLIC_AUTH_SCOPES:-openid profile email proof:read proof:write}"
+        NEXT_PUBLIC_WALLET_CHAIN_ID: "${NEXT_PUBLIC_WALLET_CHAIN_ID:?Set NEXT_PUBLIC_WALLET_CHAIN_ID}"
+        NEXT_PUBLIC_WALLET_CHAIN_NAME: "${NEXT_PUBLIC_WALLET_CHAIN_NAME:?Set NEXT_PUBLIC_WALLET_CHAIN_NAME}"
+        NEXT_PUBLIC_WALLET_RPC_URL: "${NEXT_PUBLIC_WALLET_RPC_URL:?Set NEXT_PUBLIC_WALLET_RPC_URL}"
+        NEXT_PUBLIC_WALLET_EXPLORER_URL: "${NEXT_PUBLIC_WALLET_EXPLORER_URL:?Set NEXT_PUBLIC_WALLET_EXPLORER_URL}"
+        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME: "${NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME:-Ether}"
+        NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_SYMBOL: "${NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_SYMBOL:-ETH}"
+    image: proofvault-frontend:prod
+    container_name: proofvault-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      proofvault-api:
+        condition: service_started
+      proofvault-authserver:
+        condition: service_started
+    networks:
+      - proofvault
+
+  proofvault-api:
+    build:
+      context: ./backend/proofvault-api
+      dockerfile: Dockerfile
+    image: proofvault-api:prod
+    container_name: proofvault-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      DB_URL: "${DB_URL:-jdbc:mysql://proofvault-mysql:3306/proofvault?useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC}"
+      DB_USERNAME: "${DB_USERNAME:-proofvault}"
+      DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
+      AUTHENTICATION_ENABLED: "true"
+      OAUTH2_ISSUER_URI: "${OAUTH2_ISSUER_URI:?Set OAUTH2_ISSUER_URI}"
+      OAUTH2_JWK_SET_URI: "${OAUTH2_JWK_SET_URI:?Set OAUTH2_JWK_SET_URI}"
+      OAUTH2_AUDIENCE: "${OAUTH2_AUDIENCE:-proofvault-api}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-https://app.proofvault.example}"
+      BLOCKCHAIN_MODE: ethereum
+      BLOCKCHAIN_NETWORK: "${BLOCKCHAIN_NETWORK:?Set BLOCKCHAIN_NETWORK}"
+      BLOCKCHAIN_RPC_URL: "${BLOCKCHAIN_RPC_URL:?Set BLOCKCHAIN_RPC_URL}"
+      BLOCKCHAIN_CHAIN_ID: "${BLOCKCHAIN_CHAIN_ID:?Set BLOCKCHAIN_CHAIN_ID}"
+      EXPLORER_BASE_URL: "${EXPLORER_BASE_URL:?Set EXPLORER_BASE_URL}"
+      PROOFVAULT_CONTRACT_ADDRESS: "${PROOFVAULT_CONTRACT_ADDRESS:?Set PROOFVAULT_CONTRACT_ADDRESS}"
+      PROOFVAULT_ANCHOR_ADDRESS: "${PROOFVAULT_ANCHOR_ADDRESS:?Set PROOFVAULT_ANCHOR_ADDRESS}"
+      PROOFVAULT_ANCHOR_PRIVATE_KEY: "${PROOFVAULT_ANCHOR_PRIVATE_KEY:?Set PROOFVAULT_ANCHOR_PRIVATE_KEY}"
+      OTEL_TRACING_ENABLED: "${OTEL_TRACING_ENABLED:-true}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318/v1/traces}"
+      OTEL_TRACES_SAMPLER_PROBABILITY: "${OTEL_TRACES_SAMPLER_PROBABILITY:-0.05}"
+      LOG_LEVEL_ROOT: "${LOG_LEVEL_ROOT:-INFO}"
+      LOG_LEVEL_PROOFVAULT: "${LOG_LEVEL_PROOFVAULT:-INFO}"
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      proofvault-mysql:
+        condition: service_healthy
+      proofvault-authserver:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    networks:
+      - proofvault
+
+  proofvault-authserver:
+    build:
+      context: ./backend/authserver
+      dockerfile: Dockerfile
+    image: proofvault-authserver:prod
+    container_name: proofvault-authserver
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 9000
+      DB_URL: "${AUTH_DB_URL:-jdbc:mysql://proofvault-mysql:3306/proofvault_auth?useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC}"
+      DB_USERNAME: "${AUTH_DB_USERNAME:-proofvault}"
+      DB_PASSWORD: "${AUTH_DB_PASSWORD:?Set AUTH_DB_PASSWORD}"
+      AUTH_ISSUER: "${AUTH_ISSUER:?Set AUTH_ISSUER}"
+      AUTH_AUDIENCE: "${AUTH_AUDIENCE:-proofvault-api}"
+      AUTH_ALLOWED_ORIGINS: "${AUTH_ALLOWED_ORIGINS:-https://app.proofvault.example}"
+      AUTH_FRONTEND_REDIRECT_URI: "${AUTH_FRONTEND_REDIRECT_URI:-https://app.proofvault.example/oauth2/callback}"
+      AUTH_FRONTEND_LOGOUT_REDIRECT_URI: "${AUTH_FRONTEND_LOGOUT_REDIRECT_URI:-https://app.proofvault.example}"
+      AUTH_SIGNING_REQUIRE_CONFIGURED_KEY: "true"
+      AUTH_SIGNING_PRIVATE_KEY_PEM: "${AUTH_SIGNING_PRIVATE_KEY_PEM:?Set AUTH_SIGNING_PRIVATE_KEY_PEM}"
+      AUTH_SIGNING_PUBLIC_KEY_PEM: "${AUTH_SIGNING_PUBLIC_KEY_PEM:-}"
+      AUTH_WALLET_ENABLED: "${AUTH_WALLET_ENABLED:-true}"
+      AUTH_WALLET_CHAIN_ID: "${AUTH_WALLET_CHAIN_ID:?Set AUTH_WALLET_CHAIN_ID}"
+      AUTH_WALLET_DOMAIN: "${AUTH_WALLET_DOMAIN:?Set AUTH_WALLET_DOMAIN}"
+      AUTH_WALLET_URI: "${AUTH_WALLET_URI:?Set AUTH_WALLET_URI}"
+      OTEL_TRACING_ENABLED: "${OTEL_TRACING_ENABLED:-true}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318/v1/traces}"
+      OTEL_TRACES_SAMPLER_PROBABILITY: "${OTEL_TRACES_SAMPLER_PROBABILITY:-0.05}"
+      LOG_LEVEL_ROOT: "${LOG_LEVEL_ROOT:-INFO}"
+      LOG_LEVEL_PROOFVAULT: "${LOG_LEVEL_PROOFVAULT:-INFO}"
+    ports:
+      - "${AUTH_PORT:-9000}:9000"
+    depends_on:
+      proofvault-mysql:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - proofvault
+
+  proofvault-mysql:
+    image: mysql:8.4
+    container_name: proofvault-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: proofvault
+      MYSQL_USER: "${DB_USERNAME:-proofvault}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}"
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - ./backend/docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      - proofvault-prod-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - proofvault
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    container_name: proofvault-otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./backend/docker/otel-collector-config.yml:/etc/otelcol-contrib/config.yml:ro
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+      - "${OTEL_METRICS_PORT:-8888}:8888"
+      - "${OTEL_PROM_EXPORTER_PORT:-8889}:8889"
+    networks:
+      - proofvault
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: proofvault-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./backend/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - proofvault-prod-prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - proofvault-api
+      - otel-collector
+    networks:
+      - proofvault
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: proofvault-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./backend/docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./backend/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - proofvault-prod-grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - proofvault
+
+networks:
+  proofvault:
+    driver: bridge
+
+volumes:
+  proofvault-prod-mysql-data:
+  proofvault-prod-prometheus-data:
+  proofvault-prod-grafana-data:

@@ -15,7 +15,15 @@ docker compose -f backend/docker-compose.yml up --build
 To run the full app with the frontend from the project root:
 
 ```bash
-docker compose -f backend/docker-compose.yml -f docker-compose.yml up --build
+docker compose up --build
+```
+
+Use a specific root environment file when needed:
+
+```bash
+docker compose -f docker-compose.anvil.yml up --build
+docker compose --env-file docker-compose.sepolia.env -f docker-compose.sepolia.yml up --build
+docker compose --env-file docker-compose.prod.env -f docker-compose.prod.yml up --build
 ```
 
 Services:

@@ -15,7 +15,7 @@ services:
         NEXT_PUBLIC_WALLET_EXPLORER_URL: ""
         NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_NAME: Anvil Ether
         NEXT_PUBLIC_WALLET_NATIVE_CURRENCY_SYMBOL: ETH
-    image: proofvault-frontend:local
+    image: proofvault-frontend:anvil
     container_name: proofvault-frontend
     restart: unless-stopped
     ports:
@@ -32,7 +32,7 @@ services:
     build:
       context: ./backend/proofvault-api
       dockerfile: Dockerfile
-    image: proofvault-api:local
+    image: proofvault-api:anvil
     container_name: proofvault-api
     restart: unless-stopped
     environment:
@@ -76,7 +76,7 @@ services:
     build:
       context: ./backend/authserver
       dockerfile: Dockerfile
-    image: proofvault-authserver:local
+    image: proofvault-authserver:anvil
     container_name: proofvault-authserver
     restart: unless-stopped
     environment:
@@ -127,7 +127,7 @@ services:
       - "3306:3306"
     volumes:
       - ./backend/docker/mysql/init:/docker-entrypoint-initdb.d:ro
-      - proofvault-mysql-data:/var/lib/mysql
+      - proofvault-anvil-mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
@@ -161,7 +161,7 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./backend/docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - proofvault-prometheus-data:/prometheus
+      - proofvault-anvil-prometheus-data:/prometheus
     ports:
       - "9090:9090"
     depends_on:
@@ -181,7 +181,7 @@ services:
     volumes:
       - ./backend/docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./backend/docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - proofvault-grafana-data:/var/lib/grafana
+      - proofvault-anvil-grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
@@ -194,6 +194,6 @@ networks:
     driver: bridge
 
 volumes:
-  proofvault-mysql-data:
-  proofvault-prometheus-data:
-  proofvault-grafana-data:
+  proofvault-anvil-mysql-data:
+  proofvault-anvil-prometheus-data:
+  proofvault-anvil-grafana-data:
