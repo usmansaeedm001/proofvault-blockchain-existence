@@ -24,7 +24,7 @@ Production-oriented Foundry package for ProofVault's hash-only proof-of-existenc
 ## Roles
 
 - `DEFAULT_ADMIN_ROLE`: grants and revokes roles.
-- `ANCHOR_ROLE`: stores proofs. Use a backend-controlled hot wallet or relayer.
+- `ANCHOR_ROLE`: stores proofs. Use an offchain-controlled hot wallet or relayer.
 - `PAUSER_ROLE`: pauses and unpauses anchoring.
 - `UPGRADER_ROLE`: authorizes UUPS upgrades while paused.
 
@@ -61,7 +61,7 @@ forge test --profile ci
 
 ```bash
 set PROOFVAULT_ADMIN=0xYourAdminMultisig
-set PROOFVAULT_ANCHOR=0xYourBackendAnchorWallet
+set PROOFVAULT_ANCHOR=0xYourOffchainAnchorWallet
 set PRIVATE_KEY=0xYourDeployerPrivateKey
 
 forge script script/DeployProofVault.s.sol:DeployProofVault ^

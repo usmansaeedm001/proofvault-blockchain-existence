@@ -1,6 +1,6 @@
-# ProofVault Backend Docker Stack
+# ProofVault Offchain Docker Stack
 
-From `backend/`, run the backend-only local stack:
+From `offchain/`, run the offchain-only local stack:
 
 ```bash
 docker compose up --build
@@ -9,7 +9,7 @@ docker compose up --build
 From the project root, run:
 
 ```bash
-docker compose -f backend/docker-compose.yml up --build
+docker compose -f offchain/docker-compose.yml up --build
 ```
 
 To run the full app with the frontend from the project root:
@@ -30,10 +30,10 @@ Services:
 
 | Service | URL |
 | --- | --- |
-| Backend API | `http://localhost:8080` |
+| Offchain API | `http://localhost:8080` |
 | Auth Server | `http://localhost:9000` |
 | MySQL | `localhost:3306` |
-| Anvil | `http://localhost:8545` |
+| External Anvil RPC | `http://172.25.179.4:8545` |
 | Prometheus | `http://localhost:9090` |
 | Grafana | `http://localhost:3000` |
 | OTEL Collector internal metrics | `http://localhost:8888/metrics` |
@@ -47,13 +47,13 @@ username: admin
 password: proofvault_admin
 ```
 
-Grafana automatically provisions these dashboards from `backend/docker/grafana/dashboards`:
+Grafana automatically provisions these dashboards from `offchain/docker/grafana/dashboards`:
 
 - ProofVault API Overview
 - ProofVault Auth Server Overview
 - ProofVault Blockchain & OTEL
 
-The default stack uses `BLOCKCHAIN_MODE=mock` so the app starts immediately. Anvil is still included as a dependency for local blockchain development.
+The default offchain stack uses `BLOCKCHAIN_MODE=ethereum` with the local Anvil profile. Start Anvil separately and set the deployed proxy address before anchoring proofs.
 
 If you already created the MySQL volume before the auth server was added, recreate it once so `proofvault_auth` is initialized:
 
@@ -65,11 +65,11 @@ docker compose up --build
 To use the real smart contract path:
 
 1. Deploy the UUPS ProofVault proxy to Anvil.
-2. Set these API environment values in `backend/docker-compose.yml` or an override file:
+2. Set these API environment values in `offchain/docker-compose.yml` or an override file:
 
    ```yaml
    BLOCKCHAIN_MODE: ethereum
-   BLOCKCHAIN_RPC_URL: http://anvil:8545
+   BLOCKCHAIN_RPC_URL: http://172.25.179.4:8545
    BLOCKCHAIN_CHAIN_ID: "31337"
    PROOFVAULT_CONTRACT_ADDRESS: "0xYourProxyAddress"
    PROOFVAULT_ANCHOR_ADDRESS: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"

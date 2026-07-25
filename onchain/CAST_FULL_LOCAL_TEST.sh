@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ProofVault full local cast test runner.
-# Run from the blockchain folder while Anvil is running.
+# Run from the onchain folder while Anvil is running.
 
 export RPC_URL="${RPC_URL:-http://127.0.0.1:8545}"
 export PRIVATE_KEY="${PRIVATE_KEY:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}"

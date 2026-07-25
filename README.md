@@ -14,7 +14,7 @@ Core user flow:
 2. User uploads a file through the web app.
 3. The API generates a SHA-256 hash.
 4. Only the hash and metadata are stored; the raw file is not stored.
-5. The backend anchors the proof on-chain.
+5. The offchain API anchors the proof on-chain through the relayer wallet.
 6. User receives a timestamped proof record and downloadable certificate.
 7. Anyone can later verify the file hash.
 
@@ -26,7 +26,7 @@ Core user flow:
 - User-scoped proof history
 - Certificate download
 - Wallet-first registration and authentication through signed wallet messages
-- JWT-secured backend APIs
+- JWT-secured offchain APIs
 - Professional blockchain insights dashboard
 - Blockchain health and proof analytics
 - OpenTelemetry tracing
@@ -51,7 +51,7 @@ Core user flow:
 frontend/
   Next.js wallet-first dashboard
 
-backend/
+offchain/
   proofvault-api/
     Spring Boot resource API for proofs, certificates, blockchain, and insights
 
@@ -61,7 +61,7 @@ backend/
   docker/
     MySQL init scripts, OTEL Collector, Prometheus, Grafana dashboards
 
-blockchain/
+onchain/
   Foundry smart contract package using Solidity and OpenZeppelin
 ```
 
@@ -71,10 +71,10 @@ High-level flow:
 User -> Next.js Frontend -> Auth Server -> ProofVault API -> MySQL
                                              |
                                              v
-                                      Blockchain / Anvil
+                                      Onchain network / Anvil
 ```
 
-The frontend never writes directly to the blockchain. All blockchain operations are handled by the backend so hashing, authorization, wallet control, persistence, and observability stay centralized.
+The frontend never writes directly to the blockchain. All onchain operations are handled by the offchain API so hashing, authorization, wallet control, persistence, and observability stay centralized.
 
 ## Tech Stack
 
@@ -84,7 +84,7 @@ The frontend never writes directly to the blockchain. All blockchain operations 
 | API | Spring Boot, Spring Security, Spring Data JPA |
 | Auth | Spring Authorization Server, OAuth2, OIDC, PKCE |
 | Database | MySQL, Flyway migrations |
-| Blockchain | Solidity, Foundry, OpenZeppelin |
+| Onchain | Solidity, Foundry, OpenZeppelin |
 | Observability | OpenTelemetry, Prometheus, Grafana |
 | Local chain | Anvil |
 | Runtime | Docker Compose |
@@ -95,12 +95,12 @@ The frontend never writes directly to the blockchain. All blockchain operations 
 proofvault/
   frontend/
     docker-compose.yml
-  backend/
+  offchain/
     proofvault-api/
     authserver/
     docker/
     docker-compose.yml
-  blockchain/
+  onchain/
   docs/
   docker-compose.yml
   docker-compose.anvil.yml
@@ -115,7 +115,7 @@ Prerequisites:
 
 - Docker Desktop
 - Node.js 20+ for frontend-only development
-- Java 21 and Maven for backend-only development
+- Java 21 and Maven for offchain-only development
 - Foundry for smart contract development
 
 Run the full stack from the project root:
@@ -189,25 +189,25 @@ Service client secret: proofvault-local-secret
 If you previously ran the database before the auth server was added, reset local Docker volumes once so the auth bootstrap records are created:
 
 ```bash
-docker compose -f backend/docker-compose.yml down -v
+docker compose -f offchain/docker-compose.yml down -v
 docker compose up --build
 ```
 
-## Backend Only
+## Offchain Only
 
-Run only backend services:
+Run only offchain services:
 
 ```bash
-docker compose -f backend/docker-compose.yml up --build
+docker compose -f offchain/docker-compose.yml up --build
 ```
 
-Or from inside `backend/`:
+Or from inside `offchain/`:
 
 ```bash
 docker compose up --build
 ```
 
-Backend services include:
+Offchain services include:
 
 - `proofvault-api`
 - `proofvault-authserver`
@@ -216,7 +216,7 @@ Backend services include:
 - Prometheus
 - Grafana
 
-More backend details are available in [`backend/README.md`](./backend/README.md).
+More offchain details are available in [`offchain/README.md`](./offchain/README.md).
 
 ## Frontend Only With Docker
 
@@ -237,9 +237,9 @@ This serves the frontend on `http://localhost:5173` and expects the API and auth
 | `sepolia` | Sepolia testnet | `11155111` | `frontend/.env.sepolia.example` |
 | `prod` | Production network | env driven | `frontend/.env.production.example` |
 
-For Anvil, copy the Anvil env examples to your real env files and run the backend with `SPRING_PROFILES_ACTIVE=anvil`.
+For Anvil, copy the Anvil env examples to your real env files and run the offchain services with `SPRING_PROFILES_ACTIVE=anvil`.
 
-For Sepolia, copy the Sepolia env examples and run the backend with `SPRING_PROFILES_ACTIVE=sepolia`.
+For Sepolia, copy the Sepolia env examples and run the offchain services with `SPRING_PROFILES_ACTIVE=sepolia`.
 
 For Docker-based full-stack runs, use the matching root Compose file:
 
@@ -290,8 +290,8 @@ Main API endpoints:
 
 Postman collections:
 
-- [`backend/proofvault-api/postman/ProofVault.postman_collection.json`](./backend/proofvault-api/postman/ProofVault.postman_collection.json)
-- [`backend/authserver/postman/ProofVaultAuthServer.postman_collection.json`](./backend/authserver/postman/ProofVaultAuthServer.postman_collection.json)
+- [`offchain/proofvault-api/postman/ProofVault.postman_collection.json`](./offchain/proofvault-api/postman/ProofVault.postman_collection.json)
+- [`offchain/authserver/postman/ProofVaultAuthServer.postman_collection.json`](./offchain/authserver/postman/ProofVaultAuthServer.postman_collection.json)
 
 ## Authentication
 
@@ -313,9 +313,9 @@ Supported auth capabilities:
 The frontend uses the public `proofvault-spa` client. The API validates JWTs issued by the auth server and checks the configured audience `proofvault-api`.
 For wallet login, the frontend connects to the browser wallet, requests a profile-specific nonce challenge from the auth server, signs it with the wallet, and receives the bearer token used by the API.
 
-## Blockchain Layer
+## Onchain Layer
 
-The smart contract package is in [`blockchain/`](./blockchain).
+The smart contract package is in [`onchain/`](./onchain).
 
 Highlights:
 
@@ -330,20 +330,20 @@ Highlights:
 Common commands:
 
 ```bash
-cd blockchain
+cd onchain
 npm install
 forge install foundry-rs/forge-std
 forge build
 forge test
 ```
 
-More details are available in [`blockchain/README.md`](./blockchain/README.md) and [`blockchain/SECURITY.md`](./blockchain/SECURITY.md).
+More details are available in [`onchain/README.md`](./onchain/README.md) and [`onchain/SECURITY.md`](./onchain/SECURITY.md).
 
 ## Observability
 
 The stack includes production-style observability:
 
-- OpenTelemetry tracing from backend services
+- OpenTelemetry tracing from offchain services
 - Prometheus metrics scraping
 - Grafana dashboards for:
   - ProofVault API overview
@@ -353,7 +353,7 @@ The stack includes production-style observability:
 Grafana dashboards are provisioned from:
 
 ```text
-backend/docker/grafana/dashboards/
+offchain/docker/grafana/dashboards/
 ```
 
 ## Security Notes

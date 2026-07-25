@@ -41,7 +41,7 @@ services:
       otel-collector:
         condition: service_started
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
   proofvault-authserver:
     build:
@@ -83,7 +83,7 @@ services:
       otel-collector:
         condition: service_started
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
   proofvault-mysql:
     image: mysql:8.4
@@ -98,7 +98,7 @@ services:
       - "3306:3306"
     volumes:
       - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
-      - proofvault-backend-mysql-data:/var/lib/mysql
+      - proofvault-offchain-mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
@@ -106,7 +106,7 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.104.0
@@ -121,7 +121,7 @@ services:
       - "8888:8888"
       - "8889:8889"
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
   prometheus:
     image: prom/prometheus:v2.53.0
@@ -132,14 +132,14 @@ services:
       - --storage.tsdb.retention.time=7d
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - proofvault-backend-prometheus-data:/prometheus
+      - proofvault-offchain-prometheus-data:/prometheus
     ports:
       - "9090:9090"
     depends_on:
       - proofvault-api
       - otel-collector
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
   grafana:
     image: grafana/grafana:11.1.0
@@ -152,19 +152,19 @@ services:
     volumes:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
-      - proofvault-backend-grafana-data:/var/lib/grafana
+      - proofvault-offchain-grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
       - prometheus
     networks:
-      - proofvault-backend
+      - proofvault-offchain
 
 networks:
-  proofvault-backend:
+  proofvault-offchain:
     driver: bridge
 
 volumes:
-  proofvault-backend-mysql-data:
-  proofvault-backend-prometheus-data:
-  proofvault-backend-grafana-data:
+  proofvault-offchain-mysql-data:
+  proofvault-offchain-prometheus-data:
+  proofvault-offchain-grafana-data:
